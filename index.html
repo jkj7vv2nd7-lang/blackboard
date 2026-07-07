@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>進化型デジタル学習黒板 - Ver.33.0 アニメ・円弧復活版</title>
+    <style>
+        html, body {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0; overflow: hidden; background-color: #14291e;
+            touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none;
+        }
+        canvas { display: block; position: absolute; top: 0; left: 0; touch-action: none; z-index: 10; }
+        
+        .toolbar {
+            position: absolute; top: 10px; left: 10px; 
+            display: flex; flex-direction: row; flex-wrap: wrap; align-items: center;
+            background-color: rgba(15, 15, 15, 0.98); padding: 8px 12px; box-sizing: border-box; gap: 8px; z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8); max-width: calc(100vw - 20px);
+            max-height: 90vh; overflow-y: auto; transition: transform 0.1s ease;
+        }
+        .toolbar.tb-vertical { flex-direction: column; flex-wrap: nowrap; width: 180px; max-height: 95vh; padding: 12px 8px; gap: 10px; }
+        .toolbar.tb-small { padding: 4px 8px; gap: 4px; }
+        .toolbar.tb-large { padding: 14px 20px; gap: 12px; }
+        
+        .handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #00f5d4; cursor: move; font-size: 20px; border-right: 2px solid #333; padding-right: 6px; font-weight: bold; flex-shrink: 0; }
+        .toolbar.tb-vertical .handle { width: 100%; height: 24px; border-right: none; border-bottom: 2px solid #333; padding-right: 0; padding-bottom: 6px; text-align: center; }
+        
+        .tool-group { display: flex; flex-direction: row; align-items: center; gap: 6px; border-right: 2px solid rgba(255, 255, 255, 0.15); padding-right: 8px; flex-shrink: 0; }
+        .toolbar.tb-vertical .tool-group { flex-direction: column; align-items: stretch; width: 100%; border-right: none; border-bottom: 2px solid rgba(255, 255, 255, 0.15); padding-bottom: 8px; }
+        .tool-group:last-child { border-right: none; border-bottom: none; padding-right: 0; padding-bottom: 0; }
+        
+        .group-content { display: flex; flex-direction: row; gap: 6px; align-items: center; }
+        .toolbar.tb-vertical .group-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%; }
+        
+        #group-presets .group-content { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .toolbar.tb-vertical #group-presets .group-content { grid-template-columns: repeat(2, 1fr); }
+        
+        .group-label { color: #00f5d4; font-size: 11px; font-weight: bold; writing-mode: vertical-rl; text-orientation: mixed; cursor: pointer; padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); text-align: center; flex-shrink: 0; }
+        .group-label:hover { background: rgba(0, 245, 212, 0.2); color: #fff; }
+        .toolbar.tb-vertical .group-label { writing-mode: horizontal-tb; text-align: left; width: 100%; padding: 4px 6px; box-sizing: border-box; display: flex; justify-content: space-between; grid-column: span 2; }
+        
+        .color-container { display: flex; gap: 5px; flex-shrink: 0; }
+        .toolbar.tb-vertical .color-container { grid-column: span 2; display: flex; justify-content: space-between; width: 100%; margin-bottom: 2px; }
+        .color-btn { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ffffff; cursor: pointer; flex-shrink: 0; box-sizing: border-box; transition: transform 0.1s; }
+        .color-white { background-color: #ffffff; }
+        .color-red   { background-color: #ff4d4d; }
+        .color-yellow{ background-color: #ffd166; }
+        .color-blue  { background-color: #4ea8de; }
+        
+        .select-custom { background: #222; color: white; border: 1px solid #555; border-radius: 6px; font-size: 11px; height: 42px; padding: 0 4px; font-weight: bold; outline: none; max-width: 90px; box-sizing: border-box; flex-shrink: 0; }
+        .toolbar.tb-vertical .select-custom { max-width: 100%; width: 100%; grid-column: span 2; height: 32px; }
+        
+        .btn { height: 50px; padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; color: white; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.4); min-width: 68px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0; text-align: center; line-height: 1.2; transition: background 0.1s; }
+        .toolbar.tb-vertical .btn { width: 100%; min-width: 0; height: 44px; font-size: 10px; padding: 2px 2px; }
+        
+        .btn-draw    { background-color: #1a5276; }
+        .btn-operate { background-color: #b7950b; }
+        .btn-preset  { background-color: #117a65; }
+        .btn-grouping{ background-color: #6c3483; }
+        .btn-bg      { background-color: #1e8449; }
+        .btn-file    { background-color: #626567; }
+        .btn-eraser  { background-color: #7b241c; }
+        .btn-history { background-color: #2c3e50; }
+        .btn-theorem { background-color: #d35400; }
+        
+        .active { border: 2.5px solid #00f5d4 !important; box-shadow: 0 0 14px #00f5d4 !important; transform: scale(1.02); }
+        
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(25, 25, 25, 0.98); border: 2px solid #00f5d4; border-radius: 14px; padding: 20px; color: white; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.9); width: 340px; box-sizing: border-box; font-size: 13px; }
+        .info-panel { position: absolute; bottom: 20px; left: 20px; z-index: 10; background-color: rgba(0, 0, 0, 0.88); padding: 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.25); color: white; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.7); font-size: 13px; min-width: 280px; }
+        .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffd166; font-family: monospace; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<canvas id="blackboard"></canvas>
+
+<div class="toolbar" id="myToolbar">
+    <div class="handle" id="myToolbarHandle">⣿</div>
+    
+    <div class="tool-group" id="group-set">
+        <span class="group-label" id="lbl-set">設定</span>
+        <div class="group-content">
+            <div class="color-container">
+                <button class="color-btn color-white active" onclick="changeColor('#ffffff', this)"></button>
+                <button class="color-btn color-red" onclick="changeColor('#ff4d4d', this)"></button>
+                <button class="color-btn color-yellow" onclick="changeColor('#ffd166', this)"></button>
+                <button class="color-btn color-blue" onclick="changeColor('#4ea8de', this)"></button>
+            </div>
+            <select class="select-custom" id="penTypeSelect" onchange="changePenType(this.value)"></select>
+            <select class="select-custom" id="lineTypeSelect" onchange="changeLineType(this.value)"></select>
+            <select class="select-custom" id="thicknessSelect" onchange="changeThickness(Number(this.value))"></select>
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-draw">
+        <span class="group-label" id="lbl-draw">作図</span>
+        <div class="group-content">
+            <button class="btn btn-draw active" id="btn-free" onclick="changeMode('free', this)"><span id="txt-free">✏️<br>手書き</span></button>
+            <button class="btn btn-draw" id="btn-plot" onclick="changeMode('plot', this)"><span id="txt-plot">📍<br>点を打つ</span></button>
+            <button class="btn btn-draw" id="btn-connect" onclick="changeMode('connect', this)"><span id="txt-ruler">📏<br>直線定規</span></button>
+            <button class="btn btn-draw" id="btn-compass" onclick="changeMode('compass', this)"><span id="txt-compass">📐<br>コンパス</span></button>
+            <button class="btn btn-draw" id="btn-arc" onclick="changeMode('arc', this)"><span id="txt-arc">🌐<br>円弧</span></button>
+        </div>
+    </div>
+
+    <div class="tool-group" id="group-theorem-custom">
+        <span class="group-label" id="lbl-theorem-custom">定理カスタム</span>
+        <div class="group-content">
+            <button class="btn btn-theorem" id="btn-set-fixed" onclick="changeMode('set-fixed', this)"><span id="txt-fixed">🔒<br>点を固定</span></button>
+            <button class="btn btn-theorem" id="btn-set-bound" onclick="changeMode('set-bound', this)"><span id="txt-bound">⛓️<br>軌道に拘束</span></button>
+        </div>
+    </div>
+
+    <div class="tool-group" id="group-presets">
+        <span class="group-label" id="lbl-presets">図形登録</span>
+        <div class="group-content">
+            <button class="btn btn-preset" onclick="deployPresetGeometry('triangle')"><span id="txt-p_tri">🔺<br>一般三角</span></button>
+            <button class="btn btn-preset" onclick="deployPresetGeometry('iso-triangle')"><span id="txt-p_isotri">📐<br>二等辺</span></button>
+            <button class="btn btn-preset" onclick="deployPresetGeometry('equ-triangle')"><span id="txt-p_eqtri">🔺<br>正三角</span></button>
+            <button class="btn btn-preset" onclick="deployPresetGeometry('right-triangle')"><span id="txt-p_rtri">∟🔺<br>直角三角</span></button>
+            <button class="btn btn-preset" onclick="deployPresetGeometry('square')"><span id="txt-p_squ">⬜<br>正方形</span></button>
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-op">
+        <span class="group-label" id="lbl-op">操作</span>
+        <div class="group-content">
+            <button class="btn btn-operate" id="btn-select" onclick="changeMode('select', this)"><span id="txt-move">🖐️<br>動かす</span></button>
+            <button class="btn btn-operate" id="btn-measure-len" onclick="changeMode('measure-len', this)"><span id="txt-m_len">📏<br>長さ測定</span></button>
+            <button class="btn btn-operate" id="btn-measure-ang" onclick="changeMode('measure-ang', this)"><span id="txt-m_ang">📐<br>角度測定</span></button>
+        </div>
+    </div>
+
+    <div class="tool-group" id="group-discovery">
+        <span class="group-label" id="lbl-discovery">探究</span>
+        <div class="group-content">
+            <button class="btn btn-grouping" id="btn-lasso" onclick="changeMode('lasso', this)"><span id="txt-lasso">🎯<br>投げ縄選択</span></button>
+            <button class="btn btn-grouping" onclick="createGroupFromSelected()"><span id="txt-makegroup">🔒<br>グループ化</span></button>
+            <button class="btn btn-grouping" onclick="clearSelectedGroup()"><span id="txt-ungroup">🔓<br>解除</span></button>
+            <button class="btn btn-grouping" id="btn-transform" onclick="changeMode('transform', this)"><span id="txt-trans">📐<br>拡大・変形</span></button>
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-res">
+        <span class="group-label" id="lbl-res">教材</span>
+        <div class="group-content">
+            <button class="btn btn-theorem" style="background-color: #e65c00;" onclick="setupInscribedAngleTheorem()"><span id="txt-angle-thm">🎡<br>円周角定理</span></button>
+            <button class="btn btn-bg" style="background-color: #1e8449;" onclick="cycleGrid()"><span id="txt-grid">🏁<br>背景方眼</span></button>
+            <button class="btn btn-bg" style="background-color: #1167b1;" onclick="openCoordModal()"><span id="txt-coord">座標設定</span></button>
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-history">
+        <span class="group-label" id="lbl-history">履歴</span>
+        <div class="group-content">
+            <button class="btn btn-history" onclick="handleUndo()"><span id="txt-undo">↩️<br>元に戻す</span></button>
+            <button class="btn btn-history" onclick="handleRedo()"><span id="txt-redo">↪️<br>やり直す</span></button>
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-admin">
+        <span class="group-label" id="lbl-admin">管理</span>
+        <div class="group-content">
+            <button class="btn btn-file" onclick="cycleToolbarSize()"><span id="txt-uisize">🔍<br>UIサイズ</span></button>
+            <button class="btn btn-file" onclick="toggleLayout()"><span id="txt-layout">🔄<br>配置切替</span></button>
+            <button class="btn btn-file" style="background-color: #2e4053;" onclick="saveData()"><span id="txt-save">💾<br>保存</span></button>
+            <button class="btn btn-file" style="background-color: #2e4053;" onclick="triggerJsonUpload()"><span id="txt-load">📤<br>読込</span></button>
+            <input type="file" id="jsonInput" accept=".json" style="display: none;" onchange="loadData(this)">
+        </div>
+    </div>
+    
+    <div class="tool-group" id="group-util">
+        <span class="group-label" id="lbl-util">共通</span>
+        <div class="group-content">
+            <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧹<br>部分消し</span></button>
+            <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
+            <button class="btn" style="background-color: #d35400;" onclick="toggleLanguage()">🌐<br>JP/EN</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="coordModal">
+    <div><span id="txt-mdl-coord-title">座標システム設定</span> <span onclick="closeModal('coordModal')" style="cursor:pointer;float:right;">✕</span></div>
+    <div style="margin:10px 0;">
+        <label id="lbl-mdl-step">1目盛りの数値:</label>
+        <select id="cfgStepUnit"><option value="1" selected>1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option></select>
+    </div>
+    <div style="margin:10px 0;">
+        <label id="lbl-mdl-px">1目盛りの幅(px):</label>
+        <input type="number" id="cfgGridPixels" value="40" min="20" max="200" style="width:60px;">
+    </div>
+    <button id="btn-mdl-coord-apply" onclick="applyCoordSettings()" style="background:#00f5d4;color:#000;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold;">設定を適用</button>
+</div>
+
+<div class="info-panel">
+    <div style="font-weight:bold; color:#00f5d4; border-bottom:1px solid #444; padding-bottom:4px; margin-bottom:4px;">📐 <span id="lbl-infotitle">情報メーター</span></div>
+    <div id="measure-instructions" style="color: #aaa; font-size: 11px;"></div>
+    <ul id="measure-output" class="measure-list"></ul>
+</div>
+
+<script>
+    const canvas = document.getElementById('blackboard'); const ctx = canvas.getContext('2d');
+    
+    let currentMode = 'free'; let currentColor = '#ffffff'; let currentThickness = 6; let currentPenType = 'chalk'; let currentLineType = 'segment';
+    let toolbarSizeState = 1; let layoutState = 0; let gridType = 1; let isDrawing = false; let currentLang = 'ja';
+    let scale = 1.0; let offsetX = 0; let offsetY = 0; let baseGridSize = 40; let coordStepUnit = 1.0; 
+
+    let drawings = []; let plots = []; let labelIndex = 0; const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    let activeMeasures = []; let groups = [];
+    let selectedPlotIds = []; let selectedDrawingIdxs = [];
+    let lassoPoints = []; let transformStartG = null;
+    
+    let dragStartMath = null; let liveCurrentMath = null; 
+    let grabbedPlot = null; 
+    let activeFreehandPoints = [];
+    let startX = 0, startY = 0;
+    let connectStartPlot = null; let measureAngPoints = [];
+
+    let undoStack = []; let redoStack = [];
+
+    const langDict = {
+        ja: {
+            "lbl-set": "設定", "lbl-draw": "作図", "lbl-theorem-custom": "定理カスタム", "lbl-presets": "図形登録", "lbl-op": "操作", "lbl-discovery": "探究", "lbl-res": "教材", "lbl-history": "履歴", "lbl-admin": "管理", "lbl-util": "共通", "lbl-infotitle": "情報メーター", "lbl-mdl-step": "1目盛りの数値:", "lbl-mdl-px": "1目盛りの幅(px):",
+            "txt-free": "✏️<br>手書き", "txt-plot": "📍<br>点を打つ", "txt-ruler": "📏<br>直線定規", "txt-compass": "📐<br>コンパス", "txt-arc": "🌐<br>円弧", "txt-fixed": "🔒<br>点を固定", "txt-bound": "⛓️<br>軌道に拘束",
+            "txt-p_tri": "🔺<br>一般三角", "txt-p_isotri": "📐<br>二等辺", "txt-p_eqtri": "🔺<br>正三角", "txt-p_rtri": "∟🔺<br>直角三角", "txt-p_squ": "⬜<br>正方形",
+            "txt-move": "🖐️<br>動かす", "txt-m_len": "📏<br>長さ測定", "txt-m_ang": "📐<br>角度測定", "txt-lasso": "🎯<br>投げ縄選択", "txt-makegroup": "🔒<br>グループ化", "txt-ungroup": "🔓<br>解除", "txt-trans": "📐<br>拡大・変形",
+            "txt-angle-thm": "🎡<br>円周角定理", "txt-grid": "🏁<br>背景方眼", "txt-coord": "座標設定", "txt-undo": "↩️<br>元に戻す", "txt-redo": "↪️<br>やり直す", "txt-uisize": "🔍<br>UIサイズ", "txt-layout": "🔄<br>配置切替", "txt-save": "💾<br>保存", "txt-load": "📤<br>読込", "txt-eraser": "🧹<br>部分消し", "txt-clear": "❌<br>全消去", "txt-mdl-coord-title": "座標システム設定", "btn-mdl-coord-apply": "設定を適用",
+            inst_free: "手書き：画面をドラッグして線を引けます", inst_plot: "タップした位置に頂点を配置します", inst_connect: "直線定規：ドラッグして離した場所に真っ直ぐな線を引きます", inst_compass: "コンパス：中心から外側へドラッグして真円を描きます", inst_arc: "円弧：中心からドラッグして円弧を配置します。端点を動かして長さを伸縮できます",
+            inst_select: "動かす：頂点をつかんで変形・伸縮考察できます。背景ドラッグでスクロールします", inst_lasso: "投げ縄：複数の図形や点を囲んで選択を行います", inst_transform: "拡大・変形：グループに属する点をドラッグして拡大縮小します",
+            inst_eraser: "部分消し：こすった部分の手書き線や、タップした図形を消去します", inst_fixed: "固定モード：タップした点をロックし、動かないようにします", inst_bound: "拘束モード：点を選んだあと、乗せるたい円の線をタップして吸着させます",
+            confirm_clear: "黒板の内容を完全にリセットしますか？"
+        },
+        en: {
+            "lbl-set": "Setup", "lbl-draw": "Draw", "lbl-theorem-custom": "Theorem", "lbl-presets": "Presets", "lbl-op": "Action", "lbl-discovery": "Explore", "lbl-res": "Tools", "lbl-history": "History", "lbl-admin": "File", "lbl-util": "Util", "lbl-infotitle": "Data Meter", "lbl-mdl-step": "Unit per grid:", "lbl-mdl-px": "Grid size (px):",
+            "txt-free": "✏️<br>Freehand", "txt-plot": "📍<br>Add Point", "txt-ruler": "📏<br>Ruler", "txt-compass": "📐<br>Compass", "txt-arc": "🌐<br>Arc", "txt-fixed": "🔒<br>Lock Point", "txt-bound": "⛓️<br>Bind Orbit",
+            "txt-p_tri": "🔺<br>Triangle", "txt-p_isotri": "📐<br>Iso-Tri", "txt-p_eqtri": "🔺<br>Equ-Tri", "txt-p_rtri": "∟🔺<br>Right-Tri", "txt-p_squ": "⬜<br>Square",
+            "txt-move": "🖐️<br>Move/Drag", "txt-m_len": "📏<br>Measure L", "txt-m_ang": "📐<br>Measure A", "txt-lasso": "🎯<br>Lasso", "txt-makegroup": "🔒<br>Group", "txt-ungroup": "🔓<br>Ungroup", "txt-trans": "📐<br>Transform",
+            "txt-angle-thm": "🎡<br>Inscribed ∠", "txt-grid": "Grid On/Off", "txt-coord": "Grid Sys", "txt-undo": "↩️<br>Undo", "txt-redo": "↪️<br>Redo", "txt-uisize": "🔍<br>UI Size", "txt-layout": "🔄<br>Layout", "txt-save": "💾<br>Export", "txt-load": "📤<br>Import", "txt-eraser": "🧹<br>Eraser", "txt-clear": "❌<br>Clear All", "txt-mdl-coord-title": "Coordinate Setup", "btn-mdl-coord-apply": "Apply Settings",
+            inst_free: "Freehand drawing mode", inst_plot: "Tap to place a guide point", inst_connect: "Drag and release to draw a straight segment", inst_compass: "Drag outward to draw a full circle", inst_arc: "Arc: Drag to deploy. Stretch or shorten by dragging its edge points.",
+            inst_select: "Drag: Grab vertex to deform. Drag background to scroll map.", inst_lasso: "Lasso: Select multiple objects by wrapping them", inst_transform: "Transform: Scale or rotate groups uniformly",
+            inst_eraser: "Eraser: Wipe out drawings or points easily", inst_fixed: "Lock Mode: Tap a point to fully lock its position", inst_bound: "Bind Mode: Select a point then a circle line to constraint it",
+            confirm_clear: "Reset blackboard?"
+        }
+    };
+
+    function saveHistory() {
+        const state = {
+            drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)),
+            activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex
+        };
+        undoStack.push(state); redoStack = []; if (undoStack.length > 50) undoStack.shift();
+    }
+    function handleUndo() { if (undoStack.length === 0) return; redoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex }); applyState(undoStack.pop()); }
+    function handleRedo() { if (redoStack.length === 0) return; undoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex }); applyState(redoStack.pop()); }
+    function applyState(state) { drawings = state.drawings || []; plots = state.plots || []; activeMeasures = state.activeMeasures || []; groups = state.groups || []; labelIndex = state.labelIndex || 0; selectedPlotIds = []; selectedDrawingIdxs = []; }
+
+    function deployPresetGeometry(type) {
+        saveHistory();
+        const centerM = toMath(canvas.width / 2, canvas.height / 2);
+        let localPlots = [];
+
+        if (type === 'triangle') {
+            localPlots = [{ id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x + 2.5, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x + 0.5, my: centerM.y + 2 }];
+        } else if (type === 'iso-triangle') {
+            localPlots = [{ id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x + 2, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x, my: centerM.y + 2.3 }];
+        } else if (type === 'equ-triangle') {
+            const side = 4; const h = side * Math.sqrt(3) / 2;
+            localPlots = [{ id: getNextLabel(), mx: centerM.x - side/2, my: centerM.y - h/3 }, { id: getNextLabel(), mx: centerM.x + side/2, my: centerM.y - h/3 }, { id: getNextLabel(), mx: centerM.x, my: centerM.y + 2*h/3 }];
+        } else if (type === 'right-triangle') {
+            localPlots = [{ id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x + 2, my: centerM.y - 1.5 }, { id: getNextLabel(), mx: centerM.x - 2, my: centerM.y + 2 }];
+        } else if (type === 'square') {
+            localPlots = [{ id: getNextLabel(), mx: centerM.x - 1.8, my: centerM.y - 1.8 }, { id: getNextLabel(), mx: centerM.x + 1.8, my: centerM.y - 1.8 }, { id: getNextLabel(), mx: centerM.x + 1.8, my: centerM.y + 1.8 }, { id: getNextLabel(), mx: centerM.x - 1.8, my: centerM.y + 1.8 }];
+        }
+
+        localPlots.forEach(p => { p.color = currentColor; p.isFixed = false; p.boundCircleId = null; });
+        const dStartIdx = drawings.length; const pIds = localPlots.map(p => p.id);
+        const isDashedLine = currentLineType === 'dashed';
+        
+        for (let i = 0; i < localPlots.length; i++) {
+            const p1 = localPlots[i]; const p2 = localPlots[(i + 1) % localPlots.length];
+            drawings.push({ id: Date.now() + i, type: 'segment', mX1: p1.mx, mY1: p1.my, mX2: p2.mx, mY2: p2.my, bindP1: p1.id, bindP2: p2.id, color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: isDashedLine });
+        }
+
+        plots.push(...localPlots);
+        groups.push({ id: Date.now(), plotIds: pIds, drawingIdxs: Array.from({length: drawings.length - dStartIdx}, (_, k) => dStartIdx + k) });
+        changeMode('select', document.getElementById('btn-select'));
+    }
+
+    function getNextLabel() { const L = labels[labelIndex % 26] + (labelIndex >= 26 ? Math.floor(labelIndex/26) : ""); labelIndex++; return L; }
+    function createGroupFromSelected() { if (selectedPlotIds.length === 0 && selectedDrawingIdxs.length === 0) return; saveHistory(); groups.push({ id: Date.now(), plotIds: [...selectedPlotIds], drawingIdxs: [...selectedDrawingIdxs] }); selectedPlotIds = []; selectedDrawingIdxs = []; }
+    function clearSelectedGroup() { if (groups.length === 0) return; saveHistory(); groups = []; selectedPlotIds = []; selectedDrawingIdxs = []; }
+    function isPointInLasso(mx, my, polygon) { let inside = false; for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) { const xi = polygon[i].x, yi = polygon[i].y; const xj = polygon[j].x, yj = polygon[j].y; if (((yi > my) !== (yj > my)) && (mx < (xj - xi) * (my - yi) / (yj - yi) + xi)) inside = !inside; } return inside; }
+    
+    function processLassoSelection() {
+        if (lassoPoints.length < 3) return; selectedPlotIds = []; selectedDrawingIdxs = [];
+        const mathPolygon = lassoPoints.map(p => toMath(p.x, p.y));
+        plots.forEach(p => { if (isPointInLasso(p.mx, p.my, mathPolygon)) selectedPlotIds.push(p.id); });
+        drawings.forEach((d, idx) => { let cx = 0, cy = 0; if (d.mX1 !== undefined) { cx = (d.mX1 + d.mX2) / 2; cy = (d.mY1 + d.mY2) / 2; } else if (d.cMX !== undefined) { cx = d.cMX; cy = d.cMY; } if (isPointInLasso(cx, cy, mathPolygon)) selectedDrawingIdxs.push(idx); });
+    }
+
+    function setupInscribedAngleTheorem() {
+        saveHistory(); drawings = []; plots = []; activeMeasures = []; groups = []; labelIndex = 0;
+        const centerM = toMath(canvas.width / 2, canvas.height / 2 + 60); const radiusM = 4.0;
+        const cId = Date.now();
+
+        plots.push(
+            { id: "O", mx: centerM.x, my: centerM.y, color: "#ff4d4d", isFixed: true, boundCircleId: null },
+            { id: "A", mx: centerM.x + radiusM * Math.cos(Math.PI * 0.2), my: centerM.y + radiusM * Math.sin(Math.PI * 0.2), color: "#ffffff", isFixed: false, boundCircleId: cId },
+            { id: "B", mx: centerM.x + radiusM * Math.cos(Math.PI * 0.8), my: centerM.y + radiusM * Math.sin(Math.PI * 0.8), color: "#ffffff", isFixed: false, boundCircleId: cId },
+            { id: "P", mx: centerM.x + radiusM * Math.cos(Math.PI * 1.4), my: centerM.y + radiusM * Math.sin(Math.PI * 1.4), color: "#00f5d4", isFixed: false, boundCircleId: cId }
+        );
+        labelIndex = 4;
+
+        drawings.push({ id: cId, type: 'compass', cMX: centerM.x, cMY: centerM.y, rMath: radiusM, color: 'rgba(255,255,255,0.3)', thickness: 3, penType: 'ballpen' });
+        drawings.push({ id: cId+1, type: 'segment', bindP1: "A", bindP2: "P", color: "#4ea8de", thickness: 4, penType: 'ballpen' });
+        drawings.push({ id: cId+2, type: 'segment', bindP1: "B", bindP2: "P", color: "#4ea8de", thickness: 4, penType: 'ballpen' });
+        drawings.push({ id: cId+3, type: 'segment', bindP1: "A", bindP2: "O", color: "#ffd166", thickness: 2.5, penType: 'ballpen', isDashed: true });
+        drawings.push({ id: cId+4, type: 'segment', bindP1: "B", bindP2: "O", color: "#ffd166", thickness: 2.5, penType: 'ballpen', isDashed: true });
+
+        activeMeasures.push({ type: 'ang', points: ["A", "P", "B"] }, { type: 'ang', points: ["A", "O", "B"] });
+        changeMode('select', document.getElementById('btn-select'));
+    }
+
+    function rebuildSelectOptions() {
+        const penSel = document.getElementById('penTypeSelect'); const lineSel = document.getElementById('lineTypeSelect'); const thickSel = document.getElementById('thicknessSelect');
+        if(currentLang === 'ja') {
+            penSel.innerHTML = `<option value="chalk">🖍️ チョーク</option><option value="pencil">✏️ えんぴつ</option><option value="ballpen">🖋️ ペン</option>`;
+            lineSel.innerHTML = `<option value="segment">実線</option><option value="dashed">点線</option>`;
+            thickSel.innerHTML = `<option value="3">太さ:細</option><option value="6">太さ:中</option><option value="12">太さ:太</option>`;
+        } else {
+            penSel.innerHTML = `<option value="chalk">🖍️ Chalk</option><option value="pencil">✏️ Pencil</option><option value="ballpen">🖋️ Pen</option>`;
+            lineSel.innerHTML = `<option value="segment">Segment</option><option value="dashed">Dashed</option>`;
+            thickSel.innerHTML = `<option value="3">Thin</option><option value="6">Mid</option><option value="12">Thick</option>`;
+        }
+        penSel.value = currentPenType; lineSel.value = currentLineType; thickSel.value = String(currentThickness);
+    }
+
+    function getMousePos(e) { 
+        const rect = canvas.getBoundingClientRect();
+        let clientX = 0, clientY = 0;
+        if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+        else if (e.changedTouches && e.changedTouches.length > 0) { clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY; }
+        else { clientX = e.clientX; clientY = e.clientY; }
+        return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+    }
+    
+    function resizeCanvas() { 
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
+        if(offsetX === 0 && offsetY === 0) { offsetX = window.innerWidth / 2; offsetY = window.innerHeight / 2; } 
+    }
+    function toScreen(mx, my) { return { x: offsetX + (mx / coordStepUnit) * baseGridSize * scale, y: offsetY - (my / coordStepUnit) * baseGridSize * scale }; }
+    function toMath(sx, sy) { return { x: ((sx - offsetX) / (baseGridSize * scale)) * coordStepUnit, y: ((offsetY - sy) / (baseGridSize * scale)) * coordStepUnit }; }
+    
+    function openCoordModal() { document.getElementById('coordModal').style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function applyCoordSettings() { coordStepUnit = Number(document.getElementById('cfgStepUnit').value); baseGridSize = Number(document.getElementById('cfgGridPixels').value); closeModal('coordModal'); }
+    
+    function applyPenStyle(rCtx, type, color, isDashed = false) { 
+        rCtx.strokeStyle = color; rCtx.lineCap = 'round'; rCtx.lineJoin = 'round'; 
+        rCtx.setLineDash(isDashed ? [8*scale, 6*scale] : []); 
+        rCtx.globalAlpha = type === 'chalk' ? 0.92 : (type === 'pencil' ? 0.65 : 1.0); 
+    }
+
+    function findCircleDrawingAt(pos) {
+        const mPos = toMath(pos.x, pos.y);
+        return drawings.find(d => {
+            if (d.type !== 'compass' && d.type !== 'arc') return false;
+            let cx = d.cMX, cy = d.cMY, r = d.rMath;
+            const dist = Math.hypot(mPos.x - cx, mPos.y - cy);
+            return Math.abs(dist - r) < (40 / (baseGridSize * scale));
+        });
+    }
+
+    function snapToCircle(plot) {
+        if (!plot.boundCircleId) return;
+        const circle = drawings.find(d => d.id === plot.boundCircleId);
+        if (!circle) return;
+        const dx = plot.mx - circle.cMX; const dy = plot.my - circle.cMY;
+        const currentDist = Math.hypot(dx, dy);
+        if (currentDist > 0) {
+            plot.mx = circle.cMX + (dx / currentDist) * circle.rMath;
+            plot.my = circle.cMY + (dy / currentDist) * circle.rMath;
+        }
+    }
+
+    function syncBoundDrawings() {
+        drawings.forEach(d => {
+            if (d.bindP1 && d.bindP2) {
+                const p1 = plots.find(p => p.id === d.bindP1); const p2 = plots.find(p => p.id === d.bindP2);
+                if (p1 && p2) { d.mX1 = p1.mx; d.mY1 = p1.my; d.mX2 = p2.mx; d.mY2 = p2.my; }
+            }
+            if (d.type === 'arc' && d.bindCenter && d.bindStart && d.bindEnd) {
+                const pC = plots.find(p => p.id === d.bindCenter);
+                const pS = plots.find(p => p.id === d.bindStart);
+                const pE = plots.find(p => p.id === d.bindEnd);
+                if (pC && pS && pE) {
+                    d.cMX = pC.mx; d.cMY = pC.my;
+                    d.rMath = Math.hypot(pS.mx - pC.mx, pS.my - pC.my);
+                    d.startAng = Math.atan2(pS.my - pC.my, pS.mx - pC.mx);
+                    d.endAng = Math.atan2(pE.my - pC.my, pE.mx - pC.mx);
+                    const currentDistE = Math.hypot(pE.mx - pC.mx, pE.my - pC.my);
+                    if (Math.abs(currentDistE - d.rMath) > 0.01) {
+                        pE.mx = pC.mx + ( (pE.mx - pC.mx) / currentDistE ) * d.rMath;
+                        pE.my = pC.my + ( (pE.my - pC.my) / currentDistE ) * d.rMath;
+                        d.endAng = Math.atan2(pE.my - pC.my, pE.mx - pC.mx);
+                    }
+                }
+            }
+        });
+    }
+
+    function runRedrawCore() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (gridType === 1) {
+            ctx.save(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)'; ctx.lineWidth = 1;
+            const tlM = toMath(0, 0); const brM = toMath(canvas.width, canvas.height);
+            const minX = Math.floor(Math.min(tlM.x, brM.x)) - 2; const maxX = Math.ceil(Math.max(tlM.x, brM.x)) + 2;
+            const minY = Math.floor(Math.min(tlM.y, brM.y)) - 2; const maxY = Math.ceil(Math.max(tlM.y, brM.y)) + 2;
+            
+            for (let mx = minX; mx <= maxX; mx += coordStepUnit) { const sP = toScreen(mx, 0); ctx.beginPath(); ctx.moveTo(sP.x, 0); ctx.lineTo(sP.x, canvas.height); ctx.stroke(); }
+            for (let my = minY; my <= maxY; my += coordStepUnit) { const sP = toScreen(0, my); ctx.beginPath(); ctx.moveTo(0, sP.y); ctx.lineTo(canvas.width, sP.y); ctx.stroke(); }
+            ctx.restore();
+        }
+        
+        plots.forEach(p => { if (p.boundCircleId) snapToCircle(p); });
+        syncBoundDrawings();
+
+        drawings.forEach((item, index) => {
+            ctx.save(); 
+            if (selectedDrawingIdxs.includes(index) || groups.some(g => g.drawingIdxs.includes(index))) { ctx.shadowBlur = 12; ctx.shadowColor = '#bc13fe'; }
+            const isDashed = item.isDashed || item.type.startsWith('dashed-'); 
+            applyPenStyle(ctx, item.penType || 'chalk', item.color, isDashed); ctx.lineWidth = item.thickness * scale;
+            
+            if (item.type === 'segment' && item.mX1 !== undefined) { 
+                const sP1 = toScreen(item.mX1, item.mY1); const sP2 = toScreen(item.mX2, item.mY2); 
+                ctx.beginPath(); ctx.moveTo(sP1.x, sP1.y); ctx.lineTo(sP2.x, sP2.y); ctx.stroke(); 
+            } else if (item.type === 'compass') { 
+                const sC = toScreen(item.cMX, item.cMY); const r = (item.rMath / coordStepUnit) * baseGridSize * scale; 
+                ctx.beginPath(); ctx.arc(sC.x, sC.y, r, 0, Math.PI*2); ctx.stroke(); 
+            } else if (item.type === 'arc') {
+                const sC = toScreen(item.cMX, item.cMY); const r = (item.rMath / coordStepUnit) * baseGridSize * scale;
+                ctx.beginPath();
+                ctx.arc(sC.x, sC.y, r, -item.startAng, -item.endAng, true);
+                ctx.stroke();
+            } else if (item.type === 'free' && item.points.length >= 2) { 
+                ctx.beginPath(); const sStart = toScreen(item.points[0].mx, item.points[0].my); ctx.moveTo(sStart.x, sStart.y); 
+                for(let i=1; i<item.points.length; i++) { const sPt = toScreen(item.points[i].mx, item.points[i].my); ctx.lineTo(sPt.x, sPt.y); } 
+                ctx.stroke(); 
+            }
+            ctx.restore();
+        });
+
+        plots.forEach(p => { 
+            ctx.save(); if (selectedPlotIds.includes(p.id) || groups.some(g => g.plotIds.includes(p.id))) { ctx.shadowBlur = 15; ctx.shadowColor = '#00f5d4'; }
+            const sP = toScreen(p.mx, p.my); ctx.fillStyle = p.color;
+            if (p.boundCircleId) ctx.fillStyle = "#00f5d4"; if (p.isFixed) ctx.fillStyle = "#ff4d4d"; 
+            ctx.beginPath(); ctx.arc(sP.x, sP.y, p.isFixed ? 9 : 7, 0, Math.PI * 2); ctx.fill(); 
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.fillStyle = p.isFixed ? '#ff4d4d' : '#ffd166'; ctx.font = 'bold 16px sans-serif'; ctx.fillText(p.id, sP.x - 6, sP.y - 14); ctx.restore(); 
+        });
+
+        if (isDrawing && dragStartMath && liveCurrentMath) {
+            ctx.save();
+            const sStart = toScreen(dragStartMath.x, dragStartMath.y);
+            const sCurrent = toScreen(liveCurrentMath.x, liveCurrentMath.y);
+            
+            applyPenStyle(ctx, currentPenType, currentColor, currentLineType === 'dashed');
+            ctx.lineWidth = currentThickness * scale;
+            
+            if (currentMode === 'connect') {
+                ctx.save();
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.25)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 2;
+                const angle = Math.atan2(sCurrent.y - sStart.y, sCurrent.x - sStart.x);
+                const len = Math.hypot(sCurrent.x - sStart.x, sCurrent.y - sStart.y);
+                ctx.translate(sStart.x, sStart.y);
+                ctx.rotate(angle);
+                ctx.fillRect(0, -15, len, 30);
+                ctx.strokeRect(0, -15, len, 30);
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                for (let d = 0; d < len; d += 15) {
+                    ctx.beginPath(); ctx.moveTo(d, -15); ctx.lineTo(d, -7); ctx.stroke();
+                }
+                ctx.restore();
+                
+                ctx.save();
+                applyPenStyle(ctx, currentPenType, currentColor, currentLineType === 'dashed');
+                ctx.lineWidth = currentThickness * scale;
+                ctx.beginPath(); ctx.moveTo(sStart.x, sStart.y); ctx.lineTo(sCurrent.x, sCurrent.y); ctx.stroke();
+                ctx.restore();
+            } else if (currentMode === 'compass' || currentMode === 'arc') {
+                const rRadius = Math.hypot(sCurrent.x - sStart.x, sCurrent.y - sStart.y);
+                if (rRadius > 1) { 
+                    ctx.beginPath(); 
+                    if (currentMode === 'compass') {
+                        ctx.arc(sStart.x, sStart.y, rRadius, 0, Math.PI * 2); 
+                    } else {
+                        ctx.arc(sStart.x, sStart.y, rRadius, 0, Math.PI, true); 
+                    }
+                    ctx.stroke(); 
+                }
+                ctx.save();
+                ctx.strokeStyle = 'rgba(220, 220, 220, 0.8)';
+                ctx.lineWidth = 5; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(sStart.x, sStart.y); ctx.lineTo((sStart.x + sCurrent.x)/2, (sStart.y + sCurrent.y)/2 - 30);
+                ctx.lineTo(sCurrent.x, sCurrent.y); ctx.stroke();
+                ctx.fillStyle = '#ff4d4d'; ctx.beginPath(); ctx.arc(sStart.x, sStart.y, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = currentColor; ctx.beginPath(); ctx.arc(sCurrent.x, sCurrent.y, 5, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+            } else if (currentMode === 'free') {
+                if (activeFreehandPoints.length >= 2) {
+                    ctx.beginPath();
+                    const sFStart = toScreen(activeFreehandPoints[0].mx, activeFreehandPoints[0].my);
+                    ctx.moveTo(sFStart.x, sFStart.y);
+                    for (let i = 1; i < activeFreehandPoints.length; i++) { const sPt = toScreen(activeFreehandPoints[i].mx, activeFreehandPoints[i].my); ctx.lineTo(sPt.x, sPt.y); }
+                    ctx.stroke();
+                }
+                ctx.save();
+                ctx.fillStyle = currentColor;
+                ctx.translate(sCurrent.x, sCurrent.y);
+                ctx.rotate(-Math.PI / 4);
+                ctx.fillRect(0, -6, 24, 12);
+                ctx.strokeStyle = '#fff'; ctx.strokeRect(0, -6, 24, 12);
+                ctx.fillStyle = '#ffcc99'; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(-8, 0); ctx.lineTo(0, 6); ctx.fill();
+                ctx.restore();
+            } else if (currentMode === 'lasso' && lassoPoints.length >= 2) {
+                ctx.strokeStyle = '#00f5d4'; ctx.lineWidth = 3; ctx.setLineDash([5, 5]);
+                ctx.beginPath(); ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+                lassoPoints.forEach(pt => ctx.lineTo(pt.x, pt.y)); ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        updateMeasurePanelAndDrawBadges();
+    }
+
+    function updateMeasurePanelAndDrawBadges() {
+        const out = document.getElementById('measure-output'); out.innerHTML = '';
+        activeMeasures.forEach(m => { 
+            if (m.type === 'ang') {
+                const p1 = plots.find(p => p.id === m.points[0]); const p2 = plots.find(p => p.id === m.points[1]); const p3 = plots.find(p => p.id === m.points[2]);
+                if (p1 && p2 && p3) {
+                    let deg = calcAngleThreePoints(p1, p2, p3); const s2 = toScreen(p2.mx, p2.my); const li = document.createElement('li'); 
+                    li.innerText = `📐 ∠${p1.id}${p2.id}${p3.id} = ${deg.toFixed(1)}°`; out.appendChild(li);
+                    ctx.save(); ctx.font = 'bold 13px sans-serif'; ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(s2.x - 32, s2.y + 15, 72, 20); ctx.strokeStyle = '#00f5d4'; ctx.strokeRect(s2.x - 32, s2.y + 15, 72, 20); ctx.fillStyle = '#fff'; ctx.fillText(`${deg.toFixed(1)}°`, s2.x - 24, s2.y + 30); ctx.restore();
+                }
+            } else if (m.type === 'len') {
+                const p1 = plots.find(p => p.id === m.points[0]); const p2 = plots.find(p => p.id === m.points[1]);
+                if (p1 && p2) { const dist = Math.hypot(p1.mx - p2.mx, p1.my - p2.my); const li = document.createElement('li'); li.innerText = `📏 辺${p1.id}${p2.id} = ${dist.toFixed(2)}`; out.appendChild(li); }
+            }
+        });
+    }
+    function calcAngleThreePoints(p1, p2, p3) { const ang1 = Math.atan2(p1.my - p2.my, p1.mx - p2.mx); const ang3 = Math.atan2(p3.my - p2.my, p3.mx - p2.mx); let diff = Math.abs(ang3 - ang1); if (diff > Math.PI) diff = Math.PI * 2 - diff; return diff * (180 / Math.PI); }
+
+    function startDrawing(e) {
+        if (e.cancelable) e.preventDefault();
+        if (e.target.closest('.toolbar') || e.target.closest('.modal') || e.target.closest('.info-panel')) return;
+        const pos = getMousePos(e); const mPos = toMath(pos.x, pos.y);
+        dragStartMath = mPos; liveCurrentMath = mPos; 
+        
+        if (currentMode === 'lasso') { isDrawing = true; lassoPoints = [pos]; return; }
+        if (currentMode === 'transform') {
+            const hitPlot = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 40);
+            if (hitPlot) {
+                const targetGroup = groups.find(g => g.plotIds.includes(hitPlot.id));
+                if (targetGroup) {
+                    saveHistory(); isDrawing = true; let gcx = 0, gcy = 0, count = 0; plots.filter(p => targetGroup.plotIds.includes(p.id)).forEach(p => { gcx += p.mx; gcy += p.my; count++; }); if (count > 0) { gcx /= count; gcy /= count; }
+                    transformStartG = { group: targetGroup, cx: gcx, cy: gcy, startDist: Math.hypot(mPos.x - gcx, mPos.y - gcy), startPlots: plots.map(p => ({ id: p.id, mx: p.mx, my: p.my })), startDrawings: JSON.parse(JSON.stringify(drawings)) };
+                }
+            }
+            return;
+        }
+        if (currentMode === 'plot') { saveHistory(); plots.push({ id: getNextLabel(), mx: mPos.x, my: mPos.y, color: currentColor, isFixed: false, boundCircleId: null }); return; }
+        if (['connect','compass','arc'].includes(currentMode)) { isDrawing = true; return; }
+        if (currentMode === 'set-fixed') {
+            const hit = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
+            if (hit) { saveHistory(); hit.isFixed = !hit.isFixed; hit.color = hit.isFixed ? "#ff4d4d" : "#ffffff"; }
+            return;
+        }
+        if (currentMode === 'set-bound') {
+            const hitPlot = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
+            if (hitPlot) { connectStartPlot = hitPlot; document.getElementById('measure-instructions').innerText = `点【${hitPlot.id}】選択中。円の軌道線をタップ。`; return; }
+            if (connectStartPlot) {
+                const hitCircle = findCircleDrawingAt(pos);
+                if (hitCircle) { saveHistory(); connectStartPlot.boundCircleId = hitCircle.id; snapToCircle(connectStartPlot); document.getElementById('measure-instructions').innerText = `点【${connectStartPlot.id}】を円周に拘束しました。`; connectStartPlot = null; }
+            }
+            return;
+        }
+        if (['measure-ang', 'measure-len'].includes(currentMode)) {
+            const hit = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
+            if (hit) {
+                measureAngPoints.push(hit.id);
+                const targetCount = currentMode === 'measure-ang' ? 3 : 2;
+                if (measureAngPoints.length === targetCount) {
+                    saveHistory(); activeMeasures.push({ type: currentMode === 'measure-ang' ? 'ang' : 'len', points: [...measureAngPoints] });
+                    measureAngPoints = [];
+                }
+            }
+            return;
+        }
+        if (currentMode === 'select') {
+            isDrawing = true;
+            let hitPlot = plots.find(p => !p.isFixed && Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 48);
+            if (hitPlot) { saveHistory(); grabbedPlot = hitPlot; } 
+            else { grabbedPlot = { id: '__CAM__' }; startX = pos.x; startY = pos.y; }
+            return;
+        }
+        if (currentMode === 'eraser') { saveHistory(); isDrawing = true; eraseAt(pos.x, pos.y); return; }
+        if (currentMode === 'free') { saveHistory(); isDrawing = true; activeFreehandPoints = [{ mx: mPos.x, my: mPos.y }]; }
+    }
+
+    function draw(e) {
+        if (e.cancelable) e.preventDefault();
+        const pos = getMousePos(e); const mPos = toMath(pos.x, pos.y);
+        if (isDrawing) { liveCurrentMath = mPos; }
+        if (!isDrawing) return;
+
+        if (currentMode === 'lasso') lassoPoints.push(pos);
+        if (currentMode === 'free') activeFreehandPoints.push({ mx: mPos.x, my: mPos.y });
+
+        if (currentMode === 'transform' && transformStartG) {
+            const currentDist = Math.hypot(mPos.x - transformStartG.cx, mPos.y - transformStartG.cy);
+            if (transformStartG.startDist > 0.1) { 
+                const ratio = currentDist / transformStartG.startDist; 
+                plots.forEach(p => { 
+                    const orig = transformStartG.startPlots.find(op => op.id === p.id); 
+                    if (orig && transformStartG.group.plotIds.includes(p.id)) { p.mx = transformStartG.cx + (orig.mx - transformStartG.cx) * ratio; p.my = transformStartG.cy + (orig.my - transformStartG.cy) * ratio; } 
+                }); 
+            }
+        }
+        if (currentMode === 'select' && grabbedPlot) {
+            if (grabbedPlot.id === '__CAM__') { offsetX += (pos.x - startX); offsetY += (pos.y - startY); startX = pos.x; startY = pos.y; }
+            else { grabbedPlot.mx = mPos.x; grabbedPlot.my = mPos.y; if (grabbedPlot.boundCircleId) snapToCircle(grabbedPlot); }
+        }
+        if (currentMode === 'eraser') { eraseAt(pos.x, pos.y); }
+    }
+
+    function stopDrawing() {
+        if (!isDrawing) return;
+        if (currentMode === 'lasso') { processLassoSelection(); }
+        if (currentMode === 'connect' && dragStartMath && liveCurrentMath) { 
+            if(Math.hypot(liveCurrentMath.x-dragStartMath.x, liveCurrentMath.y-dragStartMath.y) > 0.05) {
+                drawings.push({ id: Date.now(), type: 'segment', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: liveCurrentMath.x, mY2: liveCurrentMath.y, color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: currentLineType === 'dashed' }); 
+            }
+        }
+        if (currentMode === 'compass' && dragStartMath && liveCurrentMath) { 
+            const rM = Math.hypot(liveCurrentMath.x-dragStartMath.x, liveCurrentMath.y-dragStartMath.y); 
+            if(rM > 0.05) {
+                drawings.push({ id: Date.now(), type: 'compass', cMX: dragStartMath.x, cMY: dragStartMath.y, rMath: rM, color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: currentLineType === 'dashed' }); 
+            }
+        }
+        if (currentMode === 'arc' && dragStartMath && liveCurrentMath) {
+            const rM = Math.hypot(liveCurrentMath.x - dragStartMath.x, liveCurrentMath.y - dragStartMath.y);
+            if (rM > 0.1) {
+                const cId = getNextLabel();
+                const sId = getNextLabel();
+                const eId = getNextLabel();
+                
+                const pC = { id: cId, mx: dragStartMath.x, my: dragStartMath.y, color: "#ff4d4d", isFixed: false, boundCircleId: null };
+                const pS = { id: sId, mx: liveCurrentMath.x, my: liveCurrentMath.y, color: "#ffffff", isFixed: false, boundCircleId: null };
+                const pE = { id: eId, mx: dragStartMath.x - (liveCurrentMath.x - dragStartMath.x), my: liveCurrentMath.y, color: "#00f5d4", isFixed: false, boundCircleId: null };
+                
+                plots.push(pC, pS, pE);
+                
+                drawings.push({
+                    id: Date.now(),
+                    type: 'arc',
+                    bindCenter: cId,
+                    bindStart: sId,
+                    bindEnd: eId,
+                    cMX: pC.mx, cMY: pC.my, rMath: rM,
+                    startAng: Math.atan2(pS.my - pC.my, pS.mx - pC.mx),
+                    endAng: Math.atan2(pE.my - pC.my, pE.mx - pC.mx),
+                    color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: currentLineType === 'dashed'
+                });
+                changeMode('select', document.getElementById('btn-select'));
+            }
+        }
+        if (currentMode === 'free' && activeFreehandPoints.length >= 2) {
+            drawings.push({ id: Date.now(), type: 'free', points: [...activeFreehandPoints], color: currentColor, thickness: currentThickness, penType: currentPenType });
+        }
+        isDrawing = false; grabbedPlot = null; transformStartG = null; activeFreehandPoints = [];
+    }
+
+    function eraseAt(x, y) {
+        plots = plots.filter(p => Math.hypot(toScreen(p.mx, p.my).x - x, toScreen(p.mx, p.my).y - y) > 30);
+        drawings = drawings.filter(item => { 
+            if (item.mX1 !== undefined) return distToSeg({x,y}, toScreen(item.mX1, item.mY1), toScreen(item.mX2, item.mY2)) > 25; 
+            if (item.type === 'free') { return item.points.every(pt => Math.hypot(toScreen(pt.mx, pt.my).x - x, toScreen(pt.mx, pt.my).y - y) > 25); }
+            return true; 
+        });
+    }
+    function distToSeg(p, v, w) { const l2 = Math.pow(v.x-w.x, 2)+Math.pow(v.y-w.y,2); if(l2===0) return Math.hypot(p.x-v.x, p.y-v.y); let t = Math.max(0, Math.min(1, ((p.x-v.x)*(w.x-v.x)+(p.y-v.y)*(w.y-v.y))/l2)); return Math.hypot(p.x-(v.x+t*(w.x-v.x)), p.y-(v.y+t*(w.y-v.y))); }
+
+    function changeColor(c, el) { currentColor = c; el.parentElement.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
+    function changeThickness(t) { currentThickness = t; }
+    function changePenType(t) { currentPenType = t; }
+    function changeLineType(t) { currentLineType = t; }
+    function changeMode(m, el) { currentMode = m; isDrawing = false; connectStartPlot = null; measureAngPoints = []; document.querySelectorAll('.btn').forEach(b => b.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('measure-instructions').innerText = langDict[currentLang]["inst_" + m] || m; }
+    
+    function cycleGrid() { gridType = (gridType + 1) % 2; }
+    function cycleToolbarSize() { const tb = document.getElementById('myToolbar'); toolbarSizeState = (toolbarSizeState + 1) % 3; tb.classList.remove('tb-small', 'tb-large'); if (toolbarSizeState === 0) tb.classList.add('tb-small'); if (toolbarSizeState === 2) tb.classList.add('tb-large'); }
+    
+    function toggleLayout() { 
+        const tb = document.getElementById('myToolbar'); 
+        layoutState = (layoutState + 1) % 3; 
+        tb.classList.remove('tb-vertical'); 
+        tb.style.top='10px'; tb.style.left='10px'; tb.style.right='auto'; 
+        if(layoutState===1){ tb.classList.add('tb-vertical'); }
+        else if(layoutState===2){ tb.classList.add('tb-vertical'); tb.style.right='10px'; tb.style.left='auto'; } 
+    }
+    
+    function toggleLanguage() { currentLang = currentLang === 'ja' ? 'en' : 'ja'; applyLanguage(); }
+    
+    function applyLanguage() { 
+        const dict = langDict[currentLang]; 
+        Object.keys(dict).forEach(key => { 
+            const el = document.getElementById(key); 
+            if (el) el.innerHTML = dict[key]; 
+        }); 
+        rebuildSelectOptions(); 
+        document.getElementById('measure-instructions').innerText = dict["inst_" + currentMode] || currentMode;
+    }
+
+    function saveData() { const d = { drawings, plots, groups, activeMeasures, labelIndex }; const b = new Blob([JSON.stringify(d)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "lesson_premium_geometry.json"; a.click(); }
+    function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
+    function loadData(i) { if(i.files[0]){ const r = new FileReader(); r.onload=function(e){ const parsed = JSON.parse(e.target.result); drawings=parsed.drawings||[]; plots=parsed.plots||[]; groups=parsed.groups||[]; activeMeasures=parsed.activeMeasures||[]; labelIndex=parsed.labelIndex||0; }; r.readAsText(i.files[0]); } }
+    function clearBlackboard() { if(confirm(langDict[currentLang].confirm_clear)){ drawings=[]; plots=[]; groups=[]; activeMeasures=[]; labelIndex=0; } }
+
+    (function setupToolbarDraggable() {
+        const handle = document.getElementById('myToolbarHandle'); const toolbar = document.getElementById('myToolbar');
+        let isDraggingBar = false; let startX, startY, startLeft, startTop;
+        function barStart(clientX, clientY) { isDraggingBar = true; startX = clientX; startY = clientY; const rect = toolbar.getBoundingClientRect(); startLeft = rect.left; startTop = rect.top; toolbar.style.right = 'auto'; }
+        function barMove(clientX, clientY) { if (!isDraggingBar) return; const dx = clientX - startX; const dy = clientY - startY; toolbar.style.left = (startLeft + dx) + 'px'; toolbar.style.top = (startTop + dy) + 'px'; }
+        function barStop() { isDraggingBar = false; }
+        
+        handle.addEventListener('mousedown', (e) => { barStart(e.clientX, e.clientY); e.stopPropagation(); });
+        window.addEventListener('mousemove', (e) => { barMove(e.clientX, e.clientY); }); window.addEventListener('mouseup', barStop);
+        
+        handle.addEventListener('touchstart', (e) => { if(e.touches.length>0) { barStart(e.touches[0].clientX, e.touches[0].clientY); e.stopPropagation(); } }, {passive:false});
+        window.addEventListener('touchmove', (e) => { if(isDraggingBar && e.touches.length>0) { barMove(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
+        window.addEventListener('touchend', barStop);
+    })();
+
+    window.addEventListener('resize', resizeCanvas);
+    
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    window.addEventListener('pointerup', stopDrawing);
+    window.addEventListener('pointercancel', stopDrawing);
+    
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+    document.addEventListener('touchmove', function (e) { if(e.scale !== 1) { e.preventDefault(); } }, { passive: false });
+
+    resizeCanvas(); rebuildSelectOptions(); applyLanguage(); 
+    setInterval(runRedrawCore, 16);
+</script>
+</body>
+</html>
