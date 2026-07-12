@@ -3,135 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>進化型デジタル学習黒板 - Ver.38.0 四隅格納＆広域キャンバス版</title>
+    <title>最高峰デジタル学習黒板 - 完全版（統合アップデート）</title>
     <style>
         html, body {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            margin: 0; padding: 0; overflow: hidden; background-color: #14291e;
-            touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none;
+            margin: 0; padding: 0; overflow: hidden; background-color: #0d1f16;
+            touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", sans-serif; user-select: none; -webkit-user-select: none;
         }
         canvas { display: block; position: absolute; top: 0; left: 0; touch-action: none; z-index: 10; }
         
+        /* ツールバー基幹 */
         .toolbar {
-            position: absolute; top: 10px; left: 10px; 
+            position: absolute; top: 15px; left: 15px; 
             display: flex; flex-direction: row; flex-wrap: wrap; align-items: center;
-            background-color: rgba(15, 15, 15, 0.98); padding: 8px 12px; box-sizing: border-box; gap: 8px; z-index: 100;
-            border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 16px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            max-width: calc(100vw - 20px); max-height: 90vh; overflow-y: auto;
-            transition: transform 0.1s ease, opacity 0.2s ease;
+            background-color: rgba(10, 15, 12, 0.97); padding: 8px 12px; box-sizing: border-box; gap: 6px; z-index: 100;
+            border: 2px solid rgba(0, 245, 212, 0.35); border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+            max-width: calc(100vw - 30px); max-height: 92vh; overflow-y: auto;
+            transition: left 0.15s cubic-bezier(0.1, 0.8, 0.2, 1), top 0.15s cubic-bezier(0.1, 0.8, 0.2, 1);
         }
-        .toolbar.tb-vertical {
-            flex-direction: column; flex-wrap: nowrap; width: 180px; max-height: 95vh; padding: 12px 8px; gap: 10px;
-        }
-        .toolbar.tb-small { padding: 4px 8px; gap: 4px; }
-        .toolbar.tb-large { padding: 14px 20px; gap: 12px; }
+        .toolbar.tb-vertical { flex-direction: column; flex-wrap: nowrap; width: 165px; max-height: 95vh; padding: 12px 6px; }
+        .toolbar.tb-small { padding: 4px 6px; gap: 4px; }
+        .toolbar.tb-large { padding: 14px 18px; gap: 10px; }
         
         .handle {
-            width: 24px; display: flex; align-items: center; justify-content: center;
-            color: #00f5d4; cursor: move; font-size: 20px; border-right: 2px solid #333; padding-right: 6px; font-weight: bold; flex-shrink: 0;
+            width: 22px; display: flex; align-items: center; justify-content: center;
+            color: #00f5d4; cursor: move; font-size: 20px; border-right: 2px solid rgba(255,255,255,0.15); padding-right: 6px; font-weight: bold; flex-shrink: 0;
         }
-        .toolbar.tb-vertical .handle {
-            width: 100%; height: 24px; border-right: none; border-bottom: 2px solid #333; padding-right: 0; padding-bottom: 6px; text-align: center;
-        }
+        .toolbar.tb-vertical .handle { width: 100%; height: 22px; border-right: none; border-bottom: 2px solid rgba(255,255,255,0.15); padding-bottom: 6px; }
         
         .tool-group {
-            display: flex; flex-direction: row; align-items: center; gap: 6px;
-            border-right: 2px solid rgba(255, 255, 255, 0.15); padding-right: 8px; flex-shrink: 0;
+            display: flex; flex-direction: row; align-items: center; gap: 4px;
+            border-right: 1px solid rgba(255, 255, 255, 0.15); padding-right: 6px; flex-shrink: 0;
         }
+        .tool-group.advanced-feature { display: flex; }
+        
         .toolbar.tb-vertical .tool-group {
-            flex-direction: column; align-items: stretch; width: 100%; border-right: none; border-bottom: 2px solid rgba(255, 255, 255, 0.15); padding-bottom: 8px;
+            flex-direction: column; align-items: stretch; width: 100%; border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 6px;
         }
         .tool-group:last-child { border-right: none; border-bottom: none; padding-right: 0; padding-bottom: 0; }
         
-        .group-content { display: flex; flex-direction: row; gap: 6px; align-items: center; }
-        .toolbar.tb-vertical .group-content {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%;
-        }
-        #group-presets .group-content { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .group-content { display: flex; flex-direction: row; gap: 4px; align-items: center; }
+        .toolbar.tb-vertical .group-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%; }
+        #group-presets .group-content { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .toolbar.tb-vertical #group-presets .group-content { grid-template-columns: repeat(2, 1fr); }
         
         .group-label {
-            color: #00f5d4; font-size: 11px; font-weight: bold;
-            writing-mode: vertical-rl; text-orientation: mixed; cursor: pointer;
-            padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); text-align: center; flex-shrink: 0;
+            color: #00f5d4; font-size: 10px; font-weight: bold; writing-mode: vertical-rl; text-orientation: mixed;
+            padding: 4px 2px; border-radius: 4px; background: rgba(255,255,255,0.03); text-align: center; flex-shrink: 0;
         }
-        .group-label:hover { background: rgba(0, 245, 212, 0.2); color: #fff; }
-        .toolbar.tb-vertical .group-label {
-            writing-mode: horizontal-tb; text-align: left; width: 100%; padding: 4px 6px; box-sizing: border-box;
-            display: flex; justify-content: space-between; grid-column: span 2;
-        }
+        .toolbar.tb-vertical .group-label { writing-mode: horizontal-tb; text-align: left; width: 100%; padding: 2px 4px; grid-column: span 2; }
         
-        .color-container { display: flex; gap: 5px; flex-shrink: 0; }
-        .toolbar.tb-vertical .color-container { grid-column: span 2; display: flex; justify-content: space-between; width: 100%; margin-bottom: 2px; }
-        .color-btn { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ffffff; cursor: pointer; flex-shrink: 0; box-sizing: border-box; transition: transform 0.1s; }
+        .color-container { display: flex; gap: 4px; flex-shrink: 0; }
+        .toolbar.tb-vertical .color-container { grid-column: span 2; justify-content: space-between; width: 100%; }
+        .color-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ffffff; cursor: pointer; flex-shrink: 0; box-sizing: border-box; }
         .color-white { background-color: #ffffff; }
         .color-red { background-color: #ff4d4d; }
-        .color-yellow{ background-color: #ffd166; }
-        .color-blue { background-color: #4ea8de; }
+        .color-yellow{ background-color: #ffff00; }
+        .color-blue { background-color: #00b4d8; }
         
         .select-custom {
-            background: #222; color: white; border: 1px solid #555; border-radius: 6px;
-            font-size: 11px; height: 42px; padding: 0 4px; font-weight: bold; outline: none; max-width: 95px; box-sizing: border-box; flex-shrink: 0;
+            background: #151515; color: white; border: 1px solid #444; border-radius: 6px;
+            font-size: 11px; height: 44px; padding: 0 2px; font-weight: bold; outline: none; max-width: 90px; box-sizing: border-box; flex-shrink: 0;
         }
-        .toolbar.tb-vertical .select-custom { max-width: 100%; width: 100%; grid-column: span 2; height: 32px; }
+        .toolbar.tb-vertical .select-custom { max-width: 100%; width: 100%; grid-column: span 2; height: 30px; }
         
         .btn {
-            height: 50px; padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer; color: white; font-size: 11px; font-weight: bold;
+            height: 46px; padding: 2px 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer; color: white; font-size: 10.5px; font-weight: bold;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4); min-width: 68px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0;
-            text-align: center; line-height: 1.2; transition: background 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 62px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0; text-align: center; line-height: 1.2;
         }
-        .toolbar.tb-vertical .btn { width: 100%; min-width: 0; height: 44px; font-size: 10px; padding: 2px 2px; }
+        .toolbar.tb-vertical .btn { width: 100%; min-width: 0; height: 40px; font-size: 10px; }
         
         .btn-draw { background-color: #1a5276; }
         .btn-operate { background-color: #b7950b; }
         .btn-preset { background-color: #117a65; }
         .btn-grouping{ background-color: #6c3483; }
         .btn-bg { background-color: #1e8449; }
-        .btn-file { background-color: #626567; }
+        .btn-file { background-color: #566573; }
         .btn-eraser { background-color: #7b241c; }
         .btn-history { background-color: #2c3e50; }
         .btn-theorem { background-color: #d35400; }
-        .btn-close { background-color: #424949; color: #ffffd1; border: 1px solid #ffd166; }
+        .btn-close { background-color: #424949; color: #ffffd1; }
+        .btn-adv-toggle { background-color: #4a235a; border: 1px solid #00f5d4; color: #00f5d4; }
         
-        .active { border: 2.5px solid #00f5d4 !important; box-shadow: 0 0 14px #00f5d4 !important; transform: scale(1.02); }
+        .active { border: 2.5px solid #00f5d4 !important; box-shadow: 0 0 12px #00f5d4 !important; transform: scale(1.02); }
         
         .modal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(25, 25, 25, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
-            padding: 20px; color: white; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            width: 340px; box-sizing: border-box; font-size: 13px;
+            background: rgba(15, 20, 15, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
+            padding: 20px; color: white; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+            width: 320px; box-sizing: border-box; font-size: 13px;
         }
-        
-        /* 四隅格納システム用のレイアウト設定 */
-        .corner-choice-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px;
-        }
-        .btn-corner {
-            padding: 12px; border-radius: 8px; border: 1px solid #555; background: #333; color: white;
-            font-weight: bold; cursor: pointer; text-align: center;
-        }
+        .corner-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-corner { padding: 10px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; font-weight: bold; cursor: pointer; text-align: center; }
         .btn-corner:hover { background: #00f5d4; color: black; }
 
         .floating-trigger-btn {
-            display: none; position: fixed; width: 56px; height: 56px; border-radius: 12px;
-            background-color: rgba(15, 15, 15, 0.96); border: 2.5px solid #00f5d4;
-            color: #00f5d4; font-size: 22px; font-weight: bold; cursor: pointer; z-index: 999;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7); align-items: center; justify-content: center;
-            transition: transform 0.1s;
+            display: none; position: fixed; width: 52px; height: 52px; border-radius: 12px;
+            background-color: rgba(10, 15, 12, 0.96); border: 2.5px solid #00f5d4;
+            color: #00f5d4; font-size: 20px; cursor: pointer; z-index: 999; align-items: center; justify-content: center;
         }
-        .floating-trigger-btn:active { transform: scale(0.92); }
         
+        /* 情報メーター：右下に固定 */
         .info-panel {
-            position: absolute; bottom: 20px; left: 20px; z-index: 10;
-            background-color: rgba(0, 0, 0, 0.88); padding: 14px; border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25); color: white;
-            display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-            font-size: 13px; min-width: 280px;
+            position: absolute; bottom: 20px; right: 20px; z-index: 90;
+            background-color: rgba(5, 15, 10, 0.92); padding: 12px; border-radius: 12px;
+            border: 2px solid rgba(0, 245, 212, 0.5); color: white;
+            display: flex; flex-direction: column; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            font-size: 12px; min-width: 290px; max-width: 340px;
         }
-        .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffd166; font-family: monospace; font-size: 14px; }
+        .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffff00; font-family: monospace; font-size: 13px; font-weight: bold; }
+
+        /* 関数パレット：左下に配置し情報メーターと被らないように独立 */
+        .coord-sub-palette {
+            display: none; position: absolute; bottom: 20px; left: 20px; z-index: 95;
+            background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
+            padding: 12px; width: 350px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+            font-size: 12px; color: white;
+        }
+        .palette-title { font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 8px; cursor: pointer;}
+        .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 4px; }
+        .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 4px; font-size: 12px; }
+        
+        .fx-display-container { position: relative; width: 100%; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px;}
+        .fx-input-native {
+            width: 100%; font-size: 16px; font-weight: bold; color: #ffff00;
+            background: #000; border: 2px solid #00f5d4; padding: 8px; border-radius: 8px;
+            outline: none; box-sizing: border-box; text-align: left; font-family: monospace;
+        }
+        
+        .fraction-sync-display {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 6px; border-radius: 6px; margin-bottom: 2px;
+        }
+        .sync-label { font-size: 11px; color: #888; }
+        .sync-math-view { display: inline-flex; align-items: center; font-size: 18px; font-weight: bold; font-family: monospace; }
+        .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 4px; min-width: 25px; }
+        .sync-num { color: #00f5d4; text-align: center; min-height: 18px; }
+        .sync-den { color: #ff4d4d; text-align: center; min-height: 18px; }
+        .sync-line { width: 100%; height: 2px; background-color: #fff; margin: 2px 0; }
+        
+        .fraction-ui-container {
+            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 8px; border: 1px dashed #444;
+        }
+        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 50px; }
+        .fraction-box input {
+            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 14px; padding: 2px 0; border-radius: 4px;
+        }
+        .fraction-line { width: 100%; height: 2px; background-color: #00f5d4; margin: 3px 0; }
+
+        .math-x-font { font-family: "Times New Roman", Times, "serif", "Georgia"; font-style: italic; font-weight: bold; color: #ff4d4d; }
+        
+        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; }
+        .btn-pad { background: #252525; border: 1px solid #555; color: white; border-radius: 6px; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-pad:active { background: #00f5d4; color: black; }
+        .btn-pad-action { background: #554422; color: #ffb84d; border-color: #886633; }
+        .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; }
+        
+        .btn-flip-angle {
+            background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 1px 5px; 
+            font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -153,14 +187,15 @@
     <div class="tool-group" id="group-set">
         <span class="group-label" id="lbl-set">設定</span>
         <div class="group-content">
+            <button class="btn btn-bg" id="btn-grid-cycle" onclick="cycleGrid()"><span id="txt-grid">🏁<br>背景:通常方眼</span></button>
             <div class="color-container">
                 <button class="color-btn color-white active" onclick="changeColor('#ffffff', this)"></button>
                 <button class="color-btn color-red" onclick="changeColor('#ff4d4d', this)"></button>
-                <button class="color-btn color-yellow" onclick="changeColor('#ffd166', this)"></button>
-                <button class="color-btn color-blue" onclick="changeColor('#4ea8de', this)"></button>
+                <button class="color-btn color-yellow" onclick="changeColor('#ffff00', this)"></button>
+                <button class="color-btn color-blue" onclick="changeColor('#00b4d8', this)"></button>
             </div>
             <select class="select-custom" id="penTypeSelect" onchange="changePenType(this.value)"></select>
-            <select class="select-custom" id="lineTypeSelect" onchange="changeLineType(this.value)"></select>
+            <select class="select-custom" id="lineStyleSelect" onchange="changeLineStyle(this.value)"></select>
             <select class="select-custom" id="thicknessSelect" onchange="changeThickness(Number(this.value))"></select>
         </div>
     </div>
@@ -170,58 +205,43 @@
         <div class="group-content">
             <button class="btn btn-draw active" id="btn-free" onclick="changeMode('free', this)"><span id="txt-free">✏️<br>手書き</span></button>
             <button class="btn btn-draw" id="btn-plot" onclick="changeMode('plot', this)"><span id="txt-plot">📍<br>点を打つ</span></button>
-            <button class="btn btn-draw" id="btn-connect" onclick="changeMode('connect', this)"><span id="txt-ruler">📏<br>直線定規</span></button>
-            <button class="btn btn-draw" id="btn-compass" onclick="changeMode('compass', this)"><span id="txt-compass">📐<br>コンパス</span></button>
+            <button class="btn btn-draw" id="btn-segment" onclick="changeMode('segment', this)"><span id="txt-segment">📏<br>線分</span></button>
+            <button class="btn btn-draw" id="btn-line" onclick="changeMode('line', this)"><span id="txt-line">➖<br>直線</span></button>
+            <button class="btn btn-draw" id="btn-ray" onclick="changeMode('ray', this)"><span id="txt-ray">🪶<br>半直線</span></button>
+            <button class="btn btn-draw" id="btn-vector" onclick="changeMode('vector', this)"><span id="txt-vector">➔<br>ベクトル</span></button>
+            <button class="btn btn-draw" id="btn-compass" onclick="changeMode('compass', this)"><span id="txt-compass">🧭<br>コンパス</span></button>
             <button class="btn btn-draw" id="btn-arc" onclick="changeMode('arc', this)"><span id="txt-arc">🌐<br>円弧</span></button>
             <button class="btn btn-draw" id="btn-parallel" onclick="changeMode('parallel', this)"><span id="txt-parallel">⇄<br>平行線</span></button>
             <button class="btn btn-draw" id="btn-perpend" onclick="changeMode('perpend', this)"><span id="txt-perpend">┼<br>垂直線</span></button>
         </div>
     </div>
     
-    <div class="tool-group" id="group-theorem-custom">
-        <span class="group-label" id="lbl-theorem-custom">定理カスタム</span>
+    <div class="tool-group" id="group-op-integrated">
+        <span class="group-label" id="lbl-op-integrated">探求操作</span>
         <div class="group-content">
-            <button class="btn btn-theorem" id="btn-set-fixed" onclick="changeMode('set-fixed', this)"><span id="txt-fixed">🔒<br>点を固定</span></button>
-            <button class="btn btn-theorem" id="btn-set-bound" onclick="changeMode('set-bound', this)"><span id="txt-bound">⛓️<br>軌道に拘束</span></button>
-        </div>
-    </div>
-    
-    <div class="tool-group" id="group-presets">
-        <span class="group-label" id="lbl-presets">図形登録</span>
-        <div class="group-content">
-            <button class="btn btn-preset" onclick="deployPresetGeometry('triangle')"><span id="txt-p_tri">🔺<br>一般三角</span></button>
-            <button class="btn btn-preset" onclick="deployPresetGeometry('iso-triangle')"><span id="txt-p_isotri">📐<br>二等辺</span></button>
-            <button class="btn btn-preset" onclick="deployPresetGeometry('equ-triangle')"><span id="txt-p_eqtri">🔺<br>正三角</span></button>
-            <button class="btn btn-preset" onclick="deployPresetGeometry('right-triangle')"><span id="txt-p_rtri">∟🔺<br>直角三角</span></button>
-            <button class="btn btn-preset" onclick="deployPresetGeometry('square')"><span id="txt-p_squ">⬜<br>正方形</span></button>
-        </div>
-    </div>
-    
-    <div class="tool-group" id="group-op">
-        <span class="group-label" id="lbl-op">操作</span>
-        <div class="group-content">
-            <button class="btn btn-operate" id="btn-select" onclick="changeMode('select', this)"><span id="txt-move">🖐️<br>動かす</span></button>
+            <button class="btn btn-operate" id="btn-select" onclick="changeMode('select', this)"><span id="txt-move">🖐️<br>動かす変形</span></button>
+            <button class="btn btn-theorem advanced-feature" id="btn-set-fixed" onclick="changeMode('set-fixed', this)"><span id="txt-fixed">🔒<br>点を固定</span></button>
+            <button class="btn btn-theorem advanced-feature" id="btn-set-bound" onclick="changeMode('set-bound', this)"><span id="txt-bound">⛓️<br>動きの通り道</span></button>
+            <button class="btn btn-grouping advanced-feature" id="btn-lasso" onclick="changeMode('lasso', this)"><span id="txt-lasso">🎯<br>投げ縄選択</span></button>
+            <button class="btn btn-grouping advanced-feature" onclick="createGroupFromSelected()"><span id="txt-makegroup">🔒<br>グループ化</span></button>
+            <button class="btn btn-grouping advanced-feature" onclick="clearSelectedGroup()"><span id="txt-ungroup">🔓<br>解除</span></button>
             <button class="btn btn-operate" id="btn-measure-len" onclick="changeMode('measure-len', this)"><span id="txt-m_len">📏<br>長さ測定</span></button>
             <button class="btn btn-operate" id="btn-measure-ang" onclick="changeMode('measure-ang', this)"><span id="txt-m_ang">📐<br>角度測定</span></button>
         </div>
     </div>
     
-    <div class="tool-group" id="group-discovery">
-        <span class="group-label" id="lbl-discovery">探究</span>
+    <div class="tool-group" id="group-presets">
+        <span class="group-label" id="lbl-presets">図形教材</span>
         <div class="group-content">
-            <button class="btn btn-grouping" id="btn-lasso" onclick="changeMode('lasso', this)"><span id="txt-lasso">🎯<br>投げ縄選択</span></button>
-            <button class="btn btn-grouping" onclick="createGroupFromSelected()"><span id="txt-makegroup">🔒<br>グループ化</span></button>
-            <button class="btn btn-grouping" onclick="clearSelectedGroup()"><span id="txt-ungroup">🔓<br>解除</span></button>
-            <button class="btn btn-grouping" id="btn-transform" onclick="changeMode('transform', this)"><span id="txt-trans">📐<br>拡大・変形</span></button>
-        </div>
-    </div>
-    
-    <div class="tool-group" id="group-res">
-        <span class="group-label" id="lbl-res">教材</span>
-        <div class="group-content">
-            <button class="btn btn-theorem" style="background-color: #e65c00;" onclick="setupInscribedAngleTheorem()"><span id="txt-angle-thm">🎡<br>円周角定理</span></button>
-            <button class="btn btn-bg" id="btn-grid-cycle" style="background-color: #1e8449;" onclick="cycleGrid()"><span id="txt-grid">🏁<br>背景:通常方眼</span></button>
-            <button class="btn btn-bg" style="background-color: #1167b1;" onclick="openCoordModal()"><span id="txt-coord">座標設定</span></button>
+            <button class="btn btn-preset" id="btn-p-triangle" onclick="changeMode('p-triangle', this)"><span id="txt-p_tri">🔺<br>一般の三角形</span></button>
+            <button class="btn btn-preset" id="btn-p-iso-triangle" onclick="changeMode('p-iso-triangle', this)"><span id="txt-p_isotri">📐<br>二等辺三角形</span></button>
+            <button class="btn btn-preset" id="btn-p-equ-triangle" onclick="changeMode('p-equ-triangle', this)"><span id="txt-p_eqtri">🛆<br>正三角形</span></button>
+            <button class="btn btn-preset" id="btn-p-right-triangle" onclick="changeMode('p-right-triangle', this)"><span id="txt-p_rtri">∟⊿<br>直角三角形</span></button>
+            <button class="btn btn-preset" id="btn-p-square" onclick="changeMode('p-square', this)"><span id="txt-p_squ">⬜<br>正方形</span></button>
+            <button class="btn btn-preset" id="btn-p-rhombus" onclick="changeMode('p-rhombus', this)"><span id="txt-p_rhom">💎<br>ひし形</span></button>
+            <button class="btn btn-preset" id="btn-p-trapezoid" onclick="changeMode('p-trapezoid', this)"><span id="txt-p_trap">⏢<br>台形</span></button>
+            <button class="btn btn-preset" id="btn-p-parallelogram" onclick="changeMode('p-parallelogram', this)"><span id="txt-p_para">▱<br>平行四辺形</span></button>
+            <button class="btn btn-theorem advanced-feature" style="background-color: #e65c00;" onclick="setupInscribedAngleTheorem()"><span id="txt-angle-thm">🎡<br>円周角定理</span></button>
         </div>
     </div>
     
@@ -234,7 +254,7 @@
     </div>
     
     <div class="tool-group" id="group-admin">
-        <span class="group-label" id="lbl-admin">管理</span>
+        <span class="group-label" id="lbl-history">管理</span>
         <div class="group-content">
             <button class="btn btn-file" onclick="cycleToolbarSize()"><span id="txt-uisize">🔍<br>UIサイズ</span></button>
             <button class="btn btn-file" onclick="toggleLayout()"><span id="txt-layout">🔄<br>配置切替</span></button>
@@ -247,29 +267,65 @@
     <div class="tool-group" id="group-util">
         <span class="group-label" id="lbl-util">共通</span>
         <div class="group-content">
-            <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧹<br>部分消し</span></button>
+            <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧼<br>消しゴム</span></button>
             <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
+            <button class="btn btn-adv-toggle" id="btnAdvancedToggle" onclick="toggleAdvancedMode()"><span id="txt-adv-mode">💎<br>標準モード</span></button>
             <button class="btn" style="background-color: #d35400;" onclick="toggleLanguage()">🌐<br>JP/EN</button>
         </div>
     </div>
 </div>
 
-<div class="modal" id="coordModal">
-    <div><span id="txt-mdl-coord-title">座標システム設定</span> <span onclick="closeModal('coordModal')" style="cursor:pointer;float:right;">✕</span></div>
-    <div style="margin:10px 0;">
-        <label id="lbl-mdl-step">1目盛りの数値:</label>
-        <select id="cfgStepUnit">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="5">5</option>
-            <option value="10">10</option>
-        </select>
+<div class="coord-sub-palette" id="coordSubPalette">
+    <div class="palette-title" onclick="toggleMinimizePalette()">
+        <span id="lbl-sub-palette-title">📊 しきをつくろう！</span>
+        <span id="paletteMinIcon">▼</span>
     </div>
-    <div style="margin:10px 0;">
-        <label id="lbl-mdl-px">1目盛りの幅(px):</label>
-        <input type="number" id="cfgGridPixels" value="40" min="20" max="200" style="width:60px;">
+    <div id="paletteContent">
+        <div class="palette-row">
+            <label id="lbl-sub-step">目盛り幅:</label>
+            <select id="subStepUnit" class="palette-input" onchange="syncSubSettings()">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+            </select>
+            <div id="lbl-sub-show-num-wrap">
+                <label id="lbl-sub-show-num"><input type="checkbox" id="subShowLabels" checked onchange="syncSubSettings()"> すうじ</label>
+            </div>
+        </div>
+        
+        <div style="margin-top:6px; border-top:1px solid #333; padding-top:6px;">
+            <label id="lbl-sub-expr-head" style="font-weight:bold; color:#00f5d4; display:block; margin-bottom:4px;">📈 グラフのしき (<span class="math-x-font">y</span> = ...)</label>
+            <div class="fx-display-container">
+                <div class="fraction-sync-display">
+                    <span class="sync-label">いまのしき:</span>
+                    <div class="sync-math-view">
+                        <span style="color:#ffff00; margin-right:4px;">y = </span>
+                        <div class="sync-fraction-block" id="syncFracBlock" style="display:none;">
+                            <div class="sync-num" id="syncViewNum"></div>
+                            <div class="sync-line"></div>
+                            <div class="sync-den" id="syncViewDen"></div>
+                        </div>
+                        <span id="syncViewNormalText" style="color:#00f5d4;">0.2</span>
+                        <span class="math-x-font" id="syncViewXText" style="margin-left:2px;">x²</span>
+                    </div>
+                </div>
+                <input type="text" id="kidsFormulaInput" class="fx-input-native" value="0.2*x*x" oninput="onNativeFormulaInput()">
+                
+                <div class="fraction-ui-container">
+                    <span style="font-size:11px; color:#aaa;">ぶんすうを入れる:</span>
+                    <div class="fraction-box">
+                        <input type="text" id="fracNumerator" placeholder="上の数" oninput="onFractionFieldInput()">
+                        <div class="fraction-line"></div>
+                        <input type="text" id="fracDenominator" placeholder="下の数" oninput="onFractionFieldInput()">
+                    </div>
+                    <span style="font-size:12px; color:#ffff00; font-weight:bold;" id="lbl-fraction-x-type">x²</span>
+                    <button class="btn-pad" style="padding:4px 8px; font-size:11px; background-color:#117a65;" onclick="applyFractionToFormula()">決定</button>
+                </div>
+            </div>
+            <div class="kids-pad-grid" id="kidsKeyboardGrid"></div>
+        </div>
     </div>
-    <button id="btn-mdl-coord-apply" onclick="applyCoordSettings()" style="background:#00f5d4;color:#000;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold;">設定を適用</button>
 </div>
 
 <div class="modal" id="cornerHideModal">
@@ -283,8 +339,8 @@
 </div>
 
 <div class="info-panel">
-    <div style="font-weight:bold; color:#00f5d4; border-bottom:1px solid #444; padding-bottom:4px; margin-bottom:4px;">📐 <span id="lbl-infotitle">情報メーター</span></div>
-    <div id="measure-instructions" style="color: #aaa; font-size: 11px;"></div>
+    <div style="font-weight:bold; color:#00f5d4; border-bottom:1px solid #2a523a; padding-bottom:4px; margin-bottom:4px;">📐 <span id="lbl-infotitle">情報メーター</span></div>
+    <div id="measure-instructions" style="color: #bbb; font-size: 11px; margin-bottom: 4px;"></div>
     <ul id="measure-output" class="measure-list"></ul>
 </div>
 
@@ -296,894 +352,1013 @@
     let currentColor = '#ffffff';
     let currentThickness = 6;
     let currentPenType = 'chalk';
-    let currentLineType = 'segment'; 
+    let currentLineStyle = 'solid'; 
     let toolbarSizeState = 1; 
     let layoutState = 0; 
     let gridType = 1; 
     let isDrawing = false;
     let currentLang = 'ja';
+    let isAdvancedMode = false;
 
-    let scale = 1.0;
-    let offsetX = 0;
-    let offsetY = 0;
-    let baseGridSize = 40;
-    let coordStepUnit = 1.0;
+    let scale = 1.0; let offsetX = 0; let offsetY = 0;
+    let baseGridSize = 40; let coordStepUnit = 1.0; let showCoordLabels = true;
+    let isPaletteMinimized = false;
 
-    let drawings = [];
-    let plots = [];
-    let labelIndex = 0;
+    let drawings = []; let plots = []; let labelIndex = 0;
     const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-    let activeMeasures = [];
-    let groups = [];
-    let selectedPlotIds = [];
-    let selectedDrawingIds = []; 
-    let lassoPoints = [];
-    let transformStartG = null;
+    let activeMeasures = []; let groups = [];
+    let selectedPlotIds = []; let selectedDrawingIds = []; 
+    let lassoPoints = []; let eraserPath = [];
 
-    let dragStartMath = null;
-    let liveCurrentMath = null;
-    let grabbedPlot = null;
+    let dragStartMath = null; let liveCurrentMath = null;
+    let grabbedPlot = null; let grabbedArcInfo = null; 
     let activeFreehandPoints = [];
-    let startX = 0, startY = 0;
-    let connectStartPlot = null;
-    let measureAngPoints = [];
-    
-    let selectedBaseLineId = null; 
+    let startX = 0, startY = 0; let currentX = 0, currentY = 0; 
+    let selectedBaseLine = null;
+    let measureClickSequence = [];
 
-    let undoStack = [];
-    let redoStack = [];
+    let undoStack = []; let playbookRedo = [];
+
+    function tick() {
+        requestAnimationFrame(tick);
+        drawAll();
+    }
 
     const langDict = {
         ja: {
             "lbl-hide": "画面", "txt-close": "📥<br>閉じる", "txt-mdl-corner-title": "格納する場所を選んでください",
-            "lbl-set": "設定", "lbl-draw": "作図", "lbl-theorem-custom": "定理カスタム", "lbl-presets": "図形登録",
-            "lbl-op": "操作", "lbl-discovery": "探究", "lbl-res": "教材", "lbl-history": "履歴", "lbl-admin": "管理",
-            "lbl-util": "共通", "lbl-infotitle": "情報メーター", "lbl-mdl-step": "1目盛りの数値:", "lbl-mdl-px": "1目盛りの幅(px):",
-            "txt-free": "✏️<br>手書き", "txt-plot": "📍<br>点を打つ", "txt-ruler": "📏<br>直線定規", "txt-compass": "📐<br>コンパス",
-            "txt-arc": "🌐<br>円弧", "txt-parallel": "⇄<br>平行線", "txt-perpend": "┼<br>垂直線",
-            "txt-fixed": "🔒<br>点を固定", "txt-bound": "⛓️<br>軌道に拘束",
-            "txt-p_tri": "🔺<br>一般三角", "txt-p_isotri": "📐<br>二等辺", "txt-p_eqtri": "🔺<br>正三角", "txt-p_rtri": "∟🔺<br>直角三角", "txt-p_squ": "⬜<br>正方形",
-            "txt-move": "🖐️<br>動かす", "txt-m_len": "📏<br>長さ測定", "txt-m_ang": "📐<br>角度測定",
-            "txt-lasso": "🎯<br>投げ縄選択", "txt-makegroup": "🔒<br>グループ化", "txt-ungroup": "🔓<br>解除", "txt-trans": "📐<br>拡大・変形",
-            "txt-angle-thm": "🎡<br>円周角定理", "txt-coord": "座標設定",
+            "lbl-set": "設定", "lbl-draw": "作図", "lbl-op-integrated": "探求操作", "lbl-presets": "図形教材",
+            "lbl-history": "履歴", "lbl-admin": "管理", "lbl-util": "共通", "lbl-infotitle": "情報メーター", 
+            "lbl-sub-palette-title": "📊 しきをつくろう！", "lbl-sub-step": "目盛り幅:", "lbl-sub-show-num": "すうじ", "lbl-sub-expr-head": "📈 グラフのしき (y = ...)",
+            "txt-free": "✏️<br>手書き", "txt-plot": "📍<br>点を打つ", "txt-segment": "📏<br>線分", "txt-line": "➖<br>直線",
+            "txt-ray": "🪶<br>半直線", "txt-vector": "➔<br>ベクトル", "txt-compass": "🧭<br>コンパス", "txt-arc": "🌐<br>円弧",
+            "txt-parallel": "⇄<br>平行線", "txt-perpend": "┼<br>垂直線", "txt-fixed": "🔒<br>点を固定", "txt-bound": "⛓️<br>動きの通り道",
+            "txt-p_tri": "🔺<br>一般の三角形", "txt-p_isotri": "📐<br>二等辺三角形", "txt-p_eqtri": "🛆<br>正三角形", "txt-p_rtri": "∟⊿<br>直角三角形", "txt-p_squ": "⬜<br>正方形",
+            "txt-p_rhom": "💎<br>ひし形", "txt-p_trap": "⏢<br>台形", "txt-p_para": "▱<br>平行四辺形",
+            "txt-move": "🖐️<br>動かす変形", "txt-m_len": "📏<br>長さ測定", "txt-m_ang": "📐<br>角度測定",
+            "txt-lasso": "🎯<br>投げ縄選択", "txt-makegroup": "🔒<br>グループ化", "txt-ungroup": "🔓<br>解除",
+            "txt-angle-thm": "🎡<br>円周角定理", "txt-grid": "🏁<br>背景変更",
             "txt-undo": "↩️<br>元に戻す", "txt-redo": "↪️<br>やり直す", "txt-uisize": "🔍<br>UIサイズ", "txt-layout": "🔄<br>配置切替",
-            "txt-save": "💾<br>保存", "txt-load": "📤<br>読込", "txt-eraser": "🧹<br>部分消し", "txt-clear": "❌<br>全消去",
-            "txt-mdl-coord-title": "座標システム設定", "btn-mdl-coord-apply": "設定を適用",
-            inst_free: "手書き：画面をドラッグ。毛筆は速度で「トメ・ハネ・ハライ」が美しく変化します",
-            inst_plot: "タップした位置に幾何学の頂点を配置します",
-            inst_connect: "直線定規：ドラッグして離した場所に線を引きます",
-            inst_compass: "コンパス：中心から外側へドラッグしてきれいな真円を描きます",
-            inst_arc: "円弧：中心から半径をドラッグ配置。生成される端点を動かして伸縮できます",
-            inst_parallel: "平行線：基準線をタップ選択し、そこから引きたい場所をドラッグします",
-            inst_perpend: "垂直線：基準線をタップ選択し、そこから引きたい場所をドラッグします",
-            inst_select: "動かす：頂点をつかんで自在に変形。背景ドラッグでスクロール・ピンチでズーム",
-            inst_lasso: "投げ縄：複数の図形や点を囲んで一括選択を行います",
-            inst_transform: "拡大・変形：グループに属する点をドラッグして相似拡大縮小・回転します",
-            inst_eraser: "部分消し：こすった部分の手書き線や、タップした図形を安全に消去します",
-            inst_fixed: "固定モード：タップした頂点を赤くロックし、変形操作の土台にします",
-            inst_bound: "拘束モード：点を選んだあと、乗せたい円の円周をタップすると吸着・拘束されます",
-            confirm_clear: "黒板の内容（幾何データおよび手書き）を完全にリセットしますか？"
+            "txt-save": "💾<br>保存", "txt-load": "📤<br>読込", "txt-eraser": "🧼<br>消しゴム", "txt-clear": "❌<br>全消去",
+            inst_free: "【手書き】画面をドラッグします。速度変化や鉛筆の質感を表現できます。",
+            inst_plot: "【連続点を打つ】クリックしたすべての場所に幾何学の頂点を配置します。",
+            inst_segment: "【線分】定規を使って2点間をまっすぐ結ぶ線を引きます。",
+            inst_line: "【直線】2点間を通る、両側に無限に広がる直線を描きます。",
+            inst_ray: "【半直線】始点から引き始め、2点目方向へ無限に伸びる光線を描きます。",
+            inst_vector: "【ベクトル】向きと大きさをもった矢印付き線分を描きます。",
+            inst_compass: "【コンパス】中心を決定後、外側へ回すようにドラッグしてきれいな円を描きます。",
+            inst_arc: "【円弧】中心から半径を指定して円の一部を描きます。動かすモードで端点を回せます。",
+            inst_parallel: "【平行線】基準となる線を1つタップし（オレンジに点滅）、配置したい場所へドラッグします。",
+            inst_perpend: "【垂直線】基準となる線を1つタップし（オレンジに点滅）、配置したい場所へドラッグします。",
+            inst_select: "【動かす変形】点や直線、円弧をつかんで動かします。直線系オブジェクトを選択すると数式パレットと同期します。",
+            inst_lasso: "【投げ縄選択】指で滑らかに囲んで複数オブジェクトを選択します。",
+            inst_eraser: "【消しゴム】なぞった線・図形を消去します。円・円弧はこすった部分が分解・削除されます。",
+            inst_fixed: "【点を固定】タップした頂点の位置を赤くロックし、動かなくします。",
+            inst_bound: "【動きの通り道】点を選び円をタップすると、その円周上のみ動くようになります。",
+            confirm_clear: "黒板のすべての内容（幾何データ、測定、手書き）を完全に消去しますか？"
         },
         en: {
-            "lbl-hide": "Screen", "txt-close": "📥<br>Hide", "txt-mdl-corner-title": "Choose corner destination",
-            "lbl-set": "Setup", "lbl-draw": "Draw", "lbl-theorem-custom": "Theorem", "lbl-presets": "Presets",
-            "lbl-op": "Action", "lbl-discovery": "Explore", "lbl-res": "Tools", "lbl-history": "History", "lbl-admin": "File",
-            "lbl-util": "Util", "lbl-infotitle": "Data Meter", "lbl-mdl-step": "Unit per grid:", "lbl-mdl-px": "Grid size (px):",
-            "txt-free": "✏️<br>Freehand", "txt-plot": "📍<br>Add Point", "txt-ruler": "📏<br>Ruler", "txt-compass": "📐<br>Compass",
-            "txt-arc": "🌐<br>Arc", "txt-parallel": "⇄<br>Parallel", "txt-perpend": "┼<br>Perpend",
-            "txt-fixed": "🔒<br>Lock Point", "txt-bound": "Bind Orbit",
-            "txt-p_tri": "🔺<br>Triangle", "txt-p_isotri": "📐<br>Iso-Tri", "txt-p_eqtri": "🔺<br>Equ-Tri", "txt-p_rtri": "∟🔺<br>Right-Tri", "txt-p_squ": "⬜<br>Square",
-            "txt-move": "🖐️<br>Move/Drag", "txt-m_len": "📏<br>Measure L", "txt-m_ang": "📐<br>Measure A",
-            "txt-lasso": "🎯<br>Lasso", "txt-makegroup": "🔒<br>Group", "txt-ungroup": "🔓<br>Ungroup", "txt-trans": "📐<br>Transform",
-            "txt-angle-thm": "🎡<br>Inscribed ∠", "txt-coord": "Grid Sys",
-            "txt-undo": "↩️<br>Undo", "txt-redo": "Redo", "txt-uisize": "🔍<br>UI Size", "txt-layout": "🔄<br>Layout",
-            "txt-save": "💾<br>Export", "txt-load": "📤<br>Import", "txt-eraser": "🧹<br>Eraser", "txt-clear": "❌<br>Clear All",
-            "txt-mdl-coord-title": "Coordinate Setup", "btn-mdl-coord-apply": "Apply Settings",
-            inst_free: "Freehand drawing mode (Brush dynamically reflects calligraphy dynamics)", inst_plot: "Tap to place a guide point",
-            inst_connect: "Drag and release to draw a line", inst_compass: "Drag outward to draw a full circle",
-            inst_arc: "Arc: Drag to deploy center and radius",
-            inst_parallel: "Parallel: Tap reference line, then drag on screen.",
-            inst_perpend: "Perpendicular: Tap reference line, then drag on screen.",
-            inst_select: "Drag: Grab vertex to deform. Drag background to scroll.",
-            inst_lasso: "Lasso: Select multiple objects",
-            inst_transform: "Transform: Scale or rotate groups uniformly",
-            inst_eraser: "Eraser: Wipe out drawings or points safely",
-            inst_fixed: "Lock Mode: Tap a point to fully lock its position",
-            inst_bound: "Bind Mode: Select a point then a circle line",
-            confirm_clear: "Reset blackboard?"
+            "lbl-hide": "Screen", "txt-close": "📥<br>Hide", "txt-mdl-corner-title": "Select corner destination to minimize",
+            "lbl-set": "Config", "lbl-draw": "Draw", "lbl-op-integrated": "Explore", "lbl-presets": "Shapes",
+            "lbl-history": "History", "lbl-admin": "File", "lbl-util": "Util", "lbl-infotitle": "Data Meter",
+            "lbl-sub-palette-title": "📊 Build Formula!", "lbl-sub-step": "Step:", "lbl-sub-show-num": "Labels", "lbl-sub-expr-head": "📈 Graph Formula (y = ...)",
+            "txt-free": "✏️<br>Freehand", "txt-plot": "📍<br>Point", "txt-segment": "📏<br>Segment", "txt-line": "➖<br>Line",
+            "txt-ray": "🪶<br>Ray", "txt-vector": "➔<br>Vector", "txt-compass": "🧭<br>Compass", "txt-arc": "🌐<br>Arc",
+            "txt-parallel": "⇄<br>Parallel", "txt-perpend": "┼<br>Perpend", "txt-fixed": "🔒<br>Lock Pt", "txt-bound": "⛓️<br>Orbit Path",
+            "txt-p_tri": "🔺<br>Triangle", "txt-p_isotri": "📐<br>Isosceles", "txt-p_equ-triangle": "🛆<br>Equilateral", "txt-p_rtri": "∟⊿<br>Right Tri", "txt-p_squ": "⬜<br>Square",
+            "txt-p_rhom": "💎<br>Rhombus", "txt-p_trap": "⏢<br>Trapezoid", "txt-p_para": "▱<br>Parallelogram",
+            "txt-move": "🖐️<br>Morph/Move", "txt-m_len": "📏<br>Length", "txt-m_ang": "📐<br>Angle",
+            "txt-lasso": "🎯<br>Lasso", "txt-makegroup": "🔒<br>Group", "txt-ungroup": "🔓<br>Ungroup",
+            "txt-angle-thm": "🎡<br>Inscribed Thm", "txt-grid": "🏁<br>Change BG",
+            "txt-undo": "↩️<br>Undo", "txt-redo": "↪️<br>Redo", "txt-uisize": "🔍<br>UI Size", "txt-layout": "🔄<br>Layout",
+            "txt-save": "💾<br>Save", "txt-load": "📤<br>Load", "txt-eraser": "🧼<br>Eraser", "txt-clear": "❌<br>Clear All",
+            inst_free: "Freehand: Drag canvas. Simulated chalk/pencil textures active.",
+            inst_plot: "Plot Point: Places continuous geometric vertices upon canvas taps.",
+            inst_segment: "Segment: Drag straight line between two locked vertices.",
+            inst_line: "Line: Extends infinitely through 2 selected points.",
+            inst_ray: "Ray: Originates at first point, extending infinitely through second.",
+            inst_vector: "Vector: Draws directional arrow line mapping vector space.",
+            inst_compass: "Compass: Select center vertex then rotate to sweep true circles.",
+            inst_arc: "Arc: Sweep arc curves. Adjust terminal angles using morph tool.",
+            inst_parallel: "Parallel: Select base line (flashes orange), then drag target parallel track.",
+            inst_perpend: "Perpend: Select base line (flashes orange), then drag true orthogonal track.",
+            inst_select: "Morph/Move: Drag points or linear elements. Selecting lines links to the formula palette.",
+            inst_lasso: "Lasso Select: Loop smooth continuous enclosures to select groups.",
+            inst_eraser: "Eraser: Scrub components out. Circle / linear arcs slice back or clear dynamically.",
+            inst_fixed: "Lock Point: Freeze chosen vertex anchor into non-movable coordinate state.",
+            inst_bound: "Orbit Path: Bind dynamic points to track limited purely inside circle paths.",
+            confirm_clear: "Are you sure you want to completely wipe the blackboard content?"
         }
     };
 
-    /* 四隅格納・展開コントロールロジック */
+    const selectOptions = {
+        ja: {
+            penType: [{ value: 'chalk', text: '🖍️ チョーク' }, { value: 'pencil', text: '✏️ 鉛筆スタイル' }, { value: 'brush', text: '🖌️ 毛筆スタイル' }, { value: 'highlighter', text: '🖊️ 蛍光ペン' }, { value: 'neon', text: '✨ ネオンペン' }],
+            lineStyle: [{ value: 'solid', text: '━ 実線' }, { value: 'dashed', text: '--- 破線' }],
+            thickness: [{ value: '3', text: '太さ: 細' }, { value: '6', text: '太さ: 中' }, { value: '12', text: '太さ: 太' }, { value: '24', text: '太さ: 極太' }]
+        },
+        en: {
+            penType: [{ value: 'chalk', text: '🖍️ Chalk' }, { value: 'pencil', text: '✏️ Pencil Style' }, { value: 'brush', text: '🖌️ Ink Brush' }, { value: 'highlighter', text: '🖊️ Highlighter' }, { value: 'neon', text: '✨ Neon Glow' }],
+            lineStyle: [{ value: 'solid', text: '━ Solid' }, { value: 'dashed', text: '--- Dashed' }],
+            thickness: [{ value: '3', text: 'Size: Thin' }, { value: '6', text: 'Size: Normal' }, { value: '12', text: 'Size: Thick' }, { value: '24', text: 'Size: Huge' }]
+        }
+    };
+
     function openHideCornerModal() { document.getElementById('cornerHideModal').style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     
     function hideToolbarTo(corner) {
         closeModal('cornerHideModal');
         const tb = document.getElementById('myToolbar');
         const btn = document.getElementById('toolbarExpandBtn');
-        
-        tb.style.display = 'none';
-        btn.style.display = 'flex';
-        
+        tb.style.display = 'none'; btn.style.display = 'flex';
         btn.style.top = 'auto'; btn.style.left = 'auto'; btn.style.right = 'auto'; btn.style.bottom = 'auto';
-        
         if (corner === 'tl') { btn.style.top = '12px'; btn.style.left = '12px'; }
         else if (corner === 'tr') { btn.style.top = '12px'; btn.style.right = '12px'; }
         else if (corner === 'bl') { btn.style.bottom = '12px'; btn.style.left = '12px'; }
         else if (corner === 'br') { btn.style.bottom = '12px'; btn.style.right = '12px'; }
     }
-    
     function expandToolbar() {
         document.getElementById('myToolbar').style.display = 'flex';
         document.getElementById('toolbarExpandBtn').style.display = 'none';
     }
 
-    function saveHistory() {
-        const state = {
-            drawings: JSON.parse(JSON.stringify(drawings)),
-            plots: JSON.parse(JSON.stringify(plots)),
-            activeMeasures: JSON.parse(JSON.stringify(activeMeasures)),
-            groups: JSON.parse(JSON.stringify(groups)),
-            labelIndex: labelIndex
-        };
-        undoStack.push(state);
-        redoStack = [];
-        if (undoStack.length > 50) undoStack.shift();
+    function toggleAdvancedMode() {
+        isAdvancedMode = !isAdvancedMode;
+        const toggleBtn = document.getElementById('btnAdvancedToggle');
+        const advElements = document.querySelectorAll('.advanced-feature');
+        if (isAdvancedMode) {
+            toggleBtn.innerHTML = currentLang === 'ja' ? '💎 高度モード' : '💎 Advanced';
+            toggleBtn.style.backgroundColor = '#117a65';
+            advElements.forEach(el => { el.style.display = (el.tagName === 'BUTTON') ? 'flex' : 'block'; });
+        } else {
+            toggleBtn.innerHTML = currentLang === 'ja' ? '💎 標準モード' : '💎 Standard';
+            toggleBtn.style.backgroundColor = '#4a235a';
+            advElements.forEach(el => el.style.display = 'none');
+        }
     }
 
+    function onNativeFormulaInput() {
+        let val = document.getElementById('kidsFormulaInput').value;
+        parseAndSyncFractionDisplay(val);
+    }
+    function onFractionFieldInput() {
+        const num = document.getElementById('fracNumerator').value;
+        const den = document.getElementById('fracDenominator').value;
+        const input = document.getElementById('kidsFormulaInput');
+        let currentExpr = input.value;
+        let xPart = " * x * x";
+        if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) {
+            xPart = " * x";
+        } else if (!currentExpr.includes('x')) {
+            xPart = "";
+        }
+        input.value = (num || den) ? `(${num || '?'}/${den || '?'})${xPart}` : `0.2${xPart}`;
+        parseAndSyncFractionDisplay(input.value);
+    }
+    function parseAndSyncFractionDisplay(str) {
+        const block = document.getElementById('syncFracBlock');
+        const normText = document.getElementById('syncViewNormalText');
+        const xText = document.getElementById('syncViewXText');
+        const xLbl = document.getElementById('lbl-fraction-x-type');
+        const match = str.match(/\(([^)]+)\/([^)]+)\)/);
+        
+        let suffix = "";
+        if (str.includes('x*x') || str.includes('x²')) suffix = "x²";
+        else if (str.includes('x')) suffix = "x";
+        
+        xText.innerText = suffix;
+        xLbl.innerText = suffix ? suffix : "x²";
+
+        if (match) {
+            block.style.display = 'inline-flex'; normText.style.display = 'none';
+            document.getElementById('syncViewNum').innerText = match[1];
+            document.getElementById('syncViewDen').innerText = match[2];
+            if (document.activeElement.id !== 'fracNumerator' && document.activeElement.id !== 'fracDenominator') {
+                document.getElementById('fracNumerator').value = match[1] === '?' ? '' : match[1];
+                document.getElementById('fracDenominator').value = match[2] === '?' ? '' : match[2];
+            }
+        } else {
+            block.style.display = 'none'; normText.style.display = 'inline';
+            let parsedVal = str.split('*')[0] || str;
+            normText.innerText = parsedVal.replace(/[()]/g, '');
+        }
+        xText.style.display = suffix ? 'inline' : 'none';
+    }
+
+    function renderKidsKeyboard() {
+        const container = document.getElementById('kidsKeyboardGrid'); container.innerHTML = '';
+        const keys = [
+            { k: 'x', label: 'x' }, { k: '+', label: '＋' }, { k: '-', label: '－' }, { k: '*', label: '×' }, { k: '/', label: '÷' },
+            { k: '1', label: '1' }, { k: '2', label: '2' }, { k: '3', label: '3' }, { k: '4', label: '4' }, { k: '5', label: '5' },
+            { k: '6', label: '6' }, { k: '7', label: '7' }, { k: '8', label: '8' }, { k: '9', label: '9' }, { k: '0', label: '0' },
+            { k: '.', label: '．' }, { k: '²', label: '²' }, { k: 'BACK', label: currentLang === 'ja'?'戻る':'Back', clear: true }, { k: 'CLEAR', label: currentLang === 'ja'?'消去':'Clear', clear: true }
+        ];
+        keys.forEach(item => {
+            const btn = document.createElement('button'); btn.className = 'btn-pad';
+            if (item.clear) btn.classList.add('btn-pad-clear');
+            btn.innerHTML = (item.label === 'x') ? '<span class="math-x-font">x</span>' : item.label;
+            btn.onclick = () => {
+                const input = document.getElementById('kidsFormulaInput');
+                if (item.k === 'CLEAR') { input.value = ''; document.getElementById('fracNumerator').value = ''; document.getElementById('fracDenominator').value = ''; }
+                else if (item.k === 'BACK') { input.value = input.value.substring(0, input.value.length - 1); }
+                else if (item.k === '²') { input.value += '*x'; }
+                else { input.value += item.k; }
+                parseAndSyncFractionDisplay(input.value);
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function applyFractionToFormula() {
+        const input = document.getElementById('kidsFormulaInput');
+        let currentExpr = input.value;
+        let suffix = " * x * x";
+        if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) suffix = " * x";
+        if (!currentExpr.includes('x')) suffix = "";
+        
+        input.value = `(${document.getElementById('fracNumerator').value || '?'}/${document.getElementById('fracDenominator').value || '?'})${suffix}`;
+        parseAndSyncFractionDisplay(input.value);
+    }
+    
+    function translateKidsToJs(rawStr) { 
+        return rawStr.replace(/×/g, '*').replace(/÷/g, '/').replace(/－/g, '-').replace(/＋/g, '+').replace(/x²/g, '(x*x)').replace(/x/g, 'x'); 
+    }
+    function syncSubSettings() { coordStepUnit = Number(document.getElementById('subStepUnit').value); showCoordLabels = document.getElementById('subShowLabels').checked; }
+    function toggleMinimizePalette() { isPaletteMinimized = !isPaletteMinimized; document.getElementById('paletteContent').style.display = isPaletteMinimized ? 'none' : 'block'; document.getElementById('paletteMinIcon').innerText = isPaletteMinimized ? '▲' : '▼'; }
+
+    function updateDropdowns() {
+        const sets = selectOptions[currentLang];
+        const pts = document.getElementById('penTypeSelect'); const oldPt = pts.value; pts.innerHTML = '';
+        sets.penType.forEach(o => pts.add(new Option(o.text, o.value))); if([...pts.options].some(o => o.value === oldPt)) pts.value = oldPt; else currentPenType = pts.value;
+        const lss = document.getElementById('lineStyleSelect'); const oldLs = lss.value; lss.innerHTML = '';
+        sets.lineStyle.forEach(o => lss.add(new Option(o.text, o.value))); if([...lss.options].some(o => o.value === oldLs)) lss.value = oldLs;
+        const ths = document.getElementById('thicknessSelect'); const oldTh = ths.value; ths.innerHTML = '';
+        sets.thickness.forEach(o => ths.add(new Option(o.text, o.value))); if([...ths.options].some(o => o.value === oldTh)) ths.value = oldTh;
+    }
+
+    function toggleLanguage() {
+        currentLang = (currentLang === 'ja') ? 'en' : 'ja';
+        for (let id in langDict[currentLang]) {
+            const el = document.getElementById(id);
+            if (el && (id.startsWith('txt-') || id.startsWith('lbl-'))) {
+                if (id === 'lbl-sub-show-num') el.innerHTML = `<input type="checkbox" id="subShowLabels" ${document.getElementById('subShowLabels').checked ? 'checked' : ''} onchange="syncSubSettings()"> ${langDict[currentLang][id]}`;
+                else el.innerHTML = langDict[currentLang][id];
+            }
+        }
+        document.getElementById('btnAdvancedToggle').innerHTML = isAdvancedMode ? (currentLang==='ja'?'💎 高度モード':'💎 Advanced') : (currentLang==='ja'?'💎 標準モード':'💎 Standard');
+        updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
+        cycleGridTextOnly();
+    }
+
+    function updateInfoMeterInstructions() { document.getElementById('measure-instructions').innerText = langDict[currentLang]['inst_' + currentMode] || ""; }
+
+    function changeMode(mode, btnEl) {
+        currentMode = mode;
+        document.querySelectorAll('.btn-draw, .btn-operate, .btn-eraser, .btn-theorem, .btn-grouping, .btn-preset').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active'); updateInfoMeterInstructions();
+        selectedBaseLine = null; measureClickSequence = []; lassoPoints = [];
+    }
+
+    function changeColor(hex, btnEl) { currentColor = hex; document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); if (btnEl) btnEl.classList.add('active'); }
+    function changeLineStyle(v) { currentLineStyle = v; if (currentMode === 'select' && selectedDrawingIds.length > 0) { saveHistory(); drawings.forEach(d => { if (selectedDrawingIds.includes(d.id)) d.lineStyle = v; }); } }
+    function changePenType(v) { currentPenType = v; if (currentMode === 'select' && selectedDrawingIds.length > 0) { saveHistory(); drawings.forEach(d => { if (selectedDrawingIds.includes(d.id)) d.penType = v; }); } }
+    function changeThickness(v) { currentThickness = v; if (currentMode === 'select' && selectedDrawingIds.length > 0) { saveHistory(); drawings.forEach(d => { if (selectedDrawingIds.includes(d.id)) d.thickness = v; }); } }
+
+    function cycleGrid() {
+        gridType = (gridType + 1) % 5;
+        cycleGridTextOnly();
+    }
+    function cycleGridTextOnly() {
+        const labelsGrid = {
+            ja: ["🏁 背景: なし", "🏁 背景: 通常方眼", "🏁 背景: 英語4線", "🏁 背景: 国語十字マス", "🏁 背景: 座標平面軸"],
+            en: ["🏁 BG: Clean", "🏁 BG: Mesh Grid", "🏁 BG: 4-Line", "🏁 BG: Kanji Cross", "🏁 BG: Coordinate Axis"]
+        };
+        document.getElementById('btn-grid-cycle').innerHTML = labelsGrid[currentLang][gridType];
+        document.getElementById('coordSubPalette').style.display = (gridType === 4) ? 'block' : 'none';
+    }
+
+    function cycleToolbarSize() {
+        const tb = document.getElementById('myToolbar'); tb.classList.remove('tb-small', 'tb-large');
+        toolbarSizeState = (toolbarSizeState + 1) % 3;
+        if (toolbarSizeState === 0) tb.classList.add('tb-small'); if (toolbarSizeState === 2) tb.classList.add('tb-large');
+    }
+    function toggleLayout() { const tb = document.getElementById('myToolbar'); layoutState = (layoutState + 1) % 2; if (layoutState === 1) tb.classList.add('tb-vertical'); else tb.classList.remove('tb-vertical'); }
+
+    function toScreen(mx, my) { return { x: canvas.width / 2 + mx * baseGridSize * scale + offsetX, y: canvas.height / 2 - my * baseGridSize * scale + offsetY }; }
+    function toMath(sx, sy) { return { x: ((sx - canvas.width / 2) - offsetX) / (baseGridSize * scale), y: ((canvas.height / 2 - sy) + offsetY) / (baseGridSize * scale) }; }
+
+    function saveHistory() {
+        undoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
+        playbookRedo = []; if (undoStack.length > 40) undoStack.shift();
+    }
     function handleUndo() {
         if (undoStack.length === 0) return;
-        redoStack.push({
-            drawings: JSON.parse(JSON.stringify(drawings)),
-            plots: JSON.parse(JSON.stringify(plots)),
-            activeMeasures: JSON.parse(JSON.stringify(activeMeasures)),
-            groups: JSON.parse(JSON.stringify(groups)),
-            labelIndex: labelIndex
-        });
+        playbookRedo.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
         applyState(undoStack.pop());
     }
-
     function handleRedo() {
-        if (redoStack.length === 0) return;
-        undoStack.push({
-            drawings: JSON.parse(JSON.stringify(drawings)),
-            plots: JSON.parse(JSON.stringify(plots)),
-            activeMeasures: JSON.parse(JSON.stringify(activeMeasures)),
-            groups: JSON.parse(JSON.stringify(groups)),
-            labelIndex: labelIndex
-        });
-        applyState(redoStack.pop());
+        if (playbookRedo.length === 0) return;
+        undoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
+        applyState(playbookRedo.pop());
     }
+    function applyState(s) { drawings = s.drawings || []; plots = s.plots || []; activeMeasures = s.activeMeasures || []; groups = s.groups || []; labelIndex = s.labelIndex || 0; selectedPlotIds = []; selectedDrawingIds = []; }
+    function generateUniqueId() { return 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
+    function getNextLabel() { const L = labels[labelIndex % 26] + (labelIndex >= 26 ? Math.floor(labelIndex/26) : ""); labelIndex++; return L; }
 
-    function applyState(state) {
-        drawings = state.drawings || [];
-        plots = state.plots || [];
-        activeMeasures = state.activeMeasures || [];
-        groups = state.groups || [];
-        labelIndex = state.labelIndex || 0;
-        selectedPlotIds = [];
-        selectedDrawingIds = [];
-        selectedBaseLineId = null;
-    }
-
-    function generateUniqueId() {
-        return 'd_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function deployPresetGeometry(type) {
-        saveHistory();
-        const centerM = toMath(canvas.width / 2, canvas.height / 2);
-        let localPlots = [];
-
-        if (type === 'triangle') {
-            localPlots = [
-                { id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x + 2.5, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x + 0.5, my: centerM.y + 2 }
-            ];
-        } else if (type === 'iso-triangle') {
-            localPlots = [
-                { id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x + 2, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x, my: centerM.y + 2.3 }
-            ];
-        } else if (type === 'equ-triangle') {
-            const side = 4; const h = side * Math.sqrt(3) / 2;
-            localPlots = [
-                { id: getNextLabel(), mx: centerM.x - side/2, my: centerM.y - h/3 },
-                { id: getNextLabel(), mx: centerM.x + side/2, my: centerM.y - h/3 },
-                { id: getNextLabel(), mx: centerM.x, my: centerM.y + 2*h/3 }
-            ];
-        } else if (type === 'right-triangle') {
-            localPlots = [
-                { id: getNextLabel(), mx: centerM.x - 2, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x + 2, my: centerM.y - 1.5 },
-                { id: getNextLabel(), mx: centerM.x - 2, my: centerM.y + 2 }
-            ];
-        } else if (type === 'square') {
-            localPlots = [
-                { id: getNextLabel(), mx: centerM.x - 1.8, my: centerM.y - 1.8 },
-                { id: getNextLabel(), mx: centerM.x + 1.8, my: centerM.y - 1.8 },
-                { id: getNextLabel(), mx: centerM.x + 1.8, my: centerM.y + 1.8 },
-                { id: getNextLabel(), mx: centerM.x - 1.8, my: centerM.y + 1.8 }
-            ];
-        }
-
-        localPlots.forEach(p => { p.color = currentColor; p.isFixed = false; p.boundCircleId = null; });
-        const pIds = localPlots.map(p => p.id);
-        const dIds = [];
-
-        for (let i = 0; i < localPlots.length; i++) {
-            const p1 = localPlots[i];
-            const p2 = localPlots[(i + 1) % localPlots.length];
-            const newId = generateUniqueId();
-            dIds.push(newId);
-            drawings.push({
-                id: newId, type: 'segment',
-                mX1: p1.mx, mY1: p1.my, mX2: p2.mx, mY2: p2.my,
-                bindP1: p1.id, bindP2: p2.id,
-                color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: false
-            });
-        }
-        plots.push(...localPlots);
-        groups.push({ id: Date.now(), plotIds: pIds, drawingIds: dIds });
-        changeMode('select', document.getElementById('btn-select'));
-    }
-
-    function getNextLabel() {
-        const L = labels[labelIndex % 26] + (labelIndex >= 26 ? Math.floor(labelIndex/26) : "");
-        labelIndex++;
-        return L;
-    }
-
-    function createGroupFromSelected() {
-        if (selectedPlotIds.length === 0 && selectedDrawingIds.length === 0) return;
-        saveHistory();
-        groups.push({ id: Date.now(), plotIds: [...selectedPlotIds], drawingIds: [...selectedDrawingIds] });
-        selectedPlotIds = []; selectedDrawingIds = [];
-    }
-
-    function clearSelectedGroup() {
-        if (groups.length === 0) return;
-        saveHistory();
-        groups = [];
-        selectedPlotIds = []; selectedDrawingIds = [];
-    }
-
-    function isPointInLasso(mx, my, polygon) {
-        let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const xi = polygon[i].x, yi = polygon[i].y;
-            const xj = polygon[j].x, yj = polygon[j].y;
-            if (((yi > my) !== (yj > my)) && (mx < (xj - xi) * (my - yi) / (yj - yi) + xi)) inside = !inside;
-        }
-        return inside;
-    }
-
-    function processLassoSelection() {
-        if (lassoPoints.length < 3) return;
-        selectedPlotIds = []; selectedDrawingIds = [];
-        const mathPolygon = lassoPoints.map(p => toMath(p.x, p.y));
+    function deployPresetShapeAt(type, mx, my) {
+        saveHistory(); let localPlots = [];
+        if (type === 'p-triangle') localPlots = [{ id: getNextLabel(), mx: mx - 2.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 3.0, my: my - 0.5 }, { id: getNextLabel(), mx: mx + 0.5, my: my + 2.0 }];
+        else if (type === 'p-iso-triangle') localPlots = [{ id: getNextLabel(), mx: mx - 1.2, my: my - 2.0 }, { id: getNextLabel(), mx: mx + 1.2, my: my - 2.0 }, { id: getNextLabel(), mx: mx, my: my + 2.2 }];
+        else if (type === 'p-equ-triangle') { let side = 3.6; let h = side * Math.sqrt(3) / 2; localPlots = [{ id: getNextLabel(), mx: mx - side/2, my: my - h/3 }, { id: getNextLabel(), mx: mx + side/2, my: my - h/3 }, { id: getNextLabel(), mx: mx, my: my + 2*h/3 }]; }
+        else if (type === 'p-right-triangle') localPlots = [{ id: getNextLabel(), mx: mx - 1.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 2.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx - 1.5, my: my + 1.8 }];
+        else if (type === 'p-square') localPlots = [{ id: getNextLabel(), mx: mx - 1.5, my: my - 1.5 }, { id: getNextLabel(), mx: mx + 1.5, my: my - 1.5 }, { id: getNextLabel(), mx: mx + 1.5, my: my + 1.5 }, { id: getNextLabel(), mx: mx - 1.5, my: my + 1.5 }];
+        else if (type === 'p-rhombus') localPlots = [{ id: getNextLabel(), mx: mx, my: my - 2.0 }, { id: getNextLabel(), mx: mx + 1.5, my: my }, { id: getNextLabel(), mx: mx, my: my + 2.0 }, { id: getNextLabel(), mx: mx - 1.5, my: my }];
+        else if (type === 'p-trapezoid') localPlots = [{ id: getNextLabel(), mx: mx - 2.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 2.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 1.2, my: my + 1.2 }, { id: getNextLabel(), mx: mx - 1.2, my: my + 1.2 }];
+        else if (type === 'p-parallelogram') localPlots = [{ id: getNextLabel(), mx: mx - 2.0, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 1.5, my: my - 1.2 }, { id: getNextLabel(), mx: mx + 2.5, my: my + 1.2 }, { id: getNextLabel(), mx: mx - 1.0, my: my + 1.2 }];
         
-        plots.forEach(p => {
-            if (isPointInLasso(p.mx, p.my, mathPolygon)) selectedPlotIds.push(p.id);
-        });
-        drawings.forEach((d) => {
-            let cx = 0, cy = 0;
-            if (d.mX1 !== undefined) { cx = (d.mX1 + d.mX2) / 2; cy = (d.mY1 + d.mY2) / 2; }
-            else if (d.cMX !== undefined) { cx = d.cMX; cy = d.cMY; }
-            if (isPointInLasso(cx, cy, mathPolygon)) selectedDrawingIds.push(d.id);
-        });
+        localPlots.forEach(p => { p.color = currentColor; p.isFixed = false; p.boundCircleId = null; });
+        const pIds = localPlots.map(p => p.id); const dIds = [];
+        for (let i = 0; i < localPlots.length; i++) {
+            const p1 = localPlots[i]; const p2 = localPlots[(i + 1) % localPlots.length]; const newId = generateUniqueId(); dIds.push(newId);
+            drawings.push({ id: newId, type: 'segment', mX1: p1.mx, mY1: p1.my, mX2: p2.mx, mY2: p2.my, bindP1: p1.id, bindP2: p2.id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+        }
+        plots.push(...localPlots); groups.push({ id: Date.now(), plotIds: pIds, drawingIds: dIds });
     }
+
+    function createGroupFromSelected() { if (selectedPlotIds.length === 0 && selectedDrawingIds.length === 0) return; saveHistory(); groups.push({ id: 'group_' + Date.now(), plotIds: [...selectedPlotIds], drawingIds: [...selectedDrawingIds] }); selectedPlotIds = []; selectedDrawingIds = []; }
+    function clearSelectedGroup() { saveHistory(); groups = []; selectedPlotIds = []; selectedDrawingIds = []; }
 
     function setupInscribedAngleTheorem() {
-        saveHistory();
-        drawings = []; plots = []; activeMeasures = []; groups = []; labelIndex = 0;
-        const centerM = toMath(canvas.width / 2, canvas.height / 2 + 60);
-        const radiusM = 4.0;
-        const cId = generateUniqueId();
-
-        plots.push(
-            { id: "O", mx: centerM.x, my: centerM.y, color: "#ff4d4d", isFixed: true, boundCircleId: null },
-            { id: "A", mx: centerM.x + radiusM * Math.cos(Math.PI * 0.2), my: centerM.y + radiusM * Math.sin(Math.PI * 0.2), color: "#ffffff", isFixed: false, boundCircleId: cId },
-            { id: "B", mx: centerM.x + radiusM * Math.cos(Math.PI * 0.8), my: centerM.y + radiusM * Math.sin(Math.PI * 0.8), color: "#ffffff", isFixed: false, boundCircleId: cId },
-            { id: "P", mx: centerM.x + radiusM * Math.cos(Math.PI * 1.4), my: centerM.y + radiusM * Math.sin(Math.PI * 1.4), color: "#00f5d4", isFixed: false, boundCircleId: cId }
-        );
-        labelIndex = 4;
-
-        drawings.push({ id: cId, type: 'compass', cMX: centerM.x, cMY: centerM.y, rMath: radiusM, color: 'rgba(255,255,255,0.3)', thickness: 3, penType: 'ballpen' });
-        drawings.push({ id: generateUniqueId(), type: 'segment', bindP1: "A", bindP2: "P", color: "#4ea8de", thickness: 4, penType: 'ballpen' });
-        drawings.push({ id: generateUniqueId(), type: 'segment', bindP1: "B", bindP2: "P", color: "#4ea8de", thickness: 4, penType: 'ballpen' });
-        drawings.push({ id: generateUniqueId(), type: 'segment', bindP1: "A", bindP2: "O", color: "#ffd166", thickness: 2.5, penType: 'ballpen', isDashed: true });
-        drawings.push({ id: generateUniqueId(), type: 'segment', bindP1: "B", bindP2: "O", color: "#ffd166", thickness: 2.5, penType: 'ballpen', isDashed: true });
-
-        activeMeasures.push({ type: 'ang', points: ["A", "P", "B"] }, { type: 'ang', points: ["A", "O", "B"] });
+        saveHistory(); plots = []; drawings = []; activeMeasures = []; groups = []; labelIndex = 0;
+        const o = { id: 'O', mx: 0, my: 0, color: '#ffff00', isFixed: true };
+        const a = { id: 'A', mx: -3, my: -1.5, color: '#fff', boundCircleId: 'c_thm' };
+        const b = { id: 'B', mx: 3, my: -1.5, color: '#fff', boundCircleId: 'c_thm' };
+        const p = { id: 'P', mx: 0, my: 3.35, color: '#ff4d4d', boundCircleId: 'c_thm' };
+        plots.push(o, a, b, p);
+        drawings.push({ id: 'c_thm', type: 'circle', mX1: 0, mY1: 0, mX2: a.mx, mY2: a.my, color: 'rgba(255,255,255,0.3)', thickness: 4, penType: 'chalk', lineStyle: 'dashed' });
+        drawings.push({ id: 'pa', type: 'segment', mX1: p.mx, mY1: p.my, mX2: a.mx, mY2: a.my, bindP1: 'P', bindP2: 'A', color: '#00b4d8', thickness: 5, penType: 'chalk' });
+        drawings.push({ id: 'pb', type: 'segment', mX1: p.mx, mY1: p.my, mX2: b.mx, mY2: b.my, bindP1: 'P', bindP2: 'B', color: '#00b4d8', thickness: 5, penType: 'chalk' });
+        drawings.push({ id: 'oa', type: 'segment', mX1: o.mx, mY1: o.my, mX2: a.mx, mY2: a.my, bindP1: 'O', bindP2: 'A', color: '#ffff00', thickness: 4, penType: 'chalk' });
+        drawings.push({ id: 'ob', type: 'segment', mX1: o.mx, mY1: o.my, mX2: b.mx, mY2: b.my, bindP1: 'O', bindP2: 'B', color: '#ffff00', thickness: 4, penType: 'chalk' });
+        activeMeasures.push({ type: 'ang', p1: 'A', p2: 'P', p3: 'B', flip: false }, { type: 'ang', p1: 'A', p2: 'O', p3: 'B', flip: false });
         changeMode('select', document.getElementById('btn-select'));
     }
 
-    function rebuildSelectOptions() {
-        const penSel = document.getElementById('penTypeSelect');
-        const lineSel = document.getElementById('lineTypeSelect');
-        const thickSel = document.getElementById('thicknessSelect');
-        if(currentLang === 'ja') {
-            penSel.innerHTML = `
-                <option value="fude">🖌️ 本格書道毛筆</option>
-                <option value="chalk">🖍️ チョーク(粉感)</option>
-                <option value="pencil">✏️ えんぴつ(薄芯)</option>
-                <option value="ballpen">🖋️ 標準サインペン</option>
-                <option value="marker">🖊️ 厚膜マーカー</option>
-                <option value="highlighter">🖍️ 蛍光ペン</option>
-            `;
-            lineSel.innerHTML = `<option value="segment">線分 (Segment)</option><option value="line">直線 (Line / 無限)</option><option value="ray">半直線 (Ray)</option>`;
-            thickSel.innerHTML = `<option value="3">太さ:細</option><option value="6">太さ:中</option><option value="12">太さ:太</option>`;
-        } else {
-            penSel.innerHTML = `
-                <option value="fude">🖌️ Master Brush</option>
-                <option value="chalk">🖍️ Textured Chalk</option>
-                <option value="pencil">✏️ Fine Pencil</option>
-                <option value="ballpen">🖋️ Standard Pen</option>
-                <option value="marker">🖊️ Bold Marker</option>
-                <option value="highlighter">🖍️ Highlighter</option>
-            `;
-            lineSel.innerHTML = `<option value="segment">Segment</option><option value="line">Full Line (Infinite)</option><option value="ray">Ray Line</option>`;
-            thickSel.innerHTML = `<option value="3">Thin</option><option value="6">Mid</option><option value="12">Thick</option>`;
-        }
-        penSel.value = currentPenType; lineSel.value = currentLineType; thickSel.value = String(currentThickness);
-    }
+    function clearBlackboard() { if(confirm(langDict[currentLang].confirm_clear)) { saveHistory(); drawings = []; plots = []; activeMeasures = []; groups = []; labelIndex = 0; } }
 
-    function getMousePos(e) {
-        const rect = canvas.getBoundingClientRect();
-        let clientX = 0, clientY = 0;
-        if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
-        else if (e.changedTouches && e.changedTouches.length > 0) { clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY; }
-        else { clientX = e.clientX; clientY = e.clientY; }
-        return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
-    }
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        if(offsetX === 0 && offsetY === 0) { offsetX = window.innerWidth / 2; offsetY = window.innerHeight / 2; }
-    }
-
-    function toScreen(mx, my) { return { x: offsetX + (mx / coordStepUnit) * baseGridSize * scale, y: offsetY - (my / coordStepUnit) * baseGridSize * scale }; }
-    function toMath(sx, sy) { return { x: ((sx - offsetX) / (baseGridSize * scale)) * coordStepUnit, y: ((offsetY - sy) / (baseGridSize * scale)) * coordStepUnit }; }
-    
-    function openCoordModal() { document.getElementById('coordModal').style.display = 'block'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function applyCoordSettings() { coordStepUnit = Number(document.getElementById('cfgStepUnit').value); baseGridSize = Number(document.getElementById('cfgGridPixels').value); closeModal('coordModal'); }
-
-    function applyPenStyle(rCtx, type, color, isDashed = false) {
-        rCtx.strokeStyle = color; rCtx.lineCap = 'round'; rCtx.lineJoin = 'round';
-        rCtx.setLineDash(isDashed ? [8*scale, 6*scale] : []);
-        rCtx.shadowBlur = 0; rCtx.shadowColor = 'transparent';
+    function drawAll() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackgroundGrids();
+        if (gridType === 4) drawMathFunctionGraph();
         
-        if (type === 'highlighter') { rCtx.globalAlpha = 0.38; rCtx.lineCap = 'square'; }
-        else if (type === 'pencil') { rCtx.globalAlpha = 0.55; }
-        else if (type === 'chalk') { rCtx.globalAlpha = 0.88; }
-        else if (type === 'fude') { rCtx.globalAlpha = 0.96; }
-        else { rCtx.globalAlpha = 1.0; }
-    }
-
-    function findCircleDrawingAt(pos) {
-        const mPos = toMath(pos.x, pos.y);
-        return drawings.find(d => {
-            if (d.type !== 'compass' && d.type !== 'arc') return false;
-            let cx = d.cMX, cy = d.cMY, r = d.rMath;
-            const dist = Math.hypot(mPos.x - cx, mPos.y - cy);
-            return Math.abs(dist - r) < (40 / (baseGridSize * scale));
+        drawings.forEach(d => { 
+            if (d.type !== 'freehand') {
+                if (selectedBaseLine && selectedBaseLine.id === d.id) {
+                    ctx.save();
+                    let flashColor = Math.floor(Date.now() / 200) % 2 === 0 ? 'rgba(255, 140, 0, 1)' : 'rgba(255, 69, 0, 0.4)';
+                    let originalColor = d.color;
+                    d.color = flashColor;
+                    drawGeomObject(d);
+                    d.color = originalColor;
+                    ctx.restore();
+                } else {
+                    drawGeomObject(d); 
+                }
+            } 
         });
-    }
-
-    function snapToCircle(plot) {
-        if (!plot.boundCircleId) return;
-        const circle = drawings.find(d => d.id === plot.boundCircleId);
-        if (!circle) return;
-        const dx = plot.mx - circle.cMX; const dy = plot.my - circle.cMY;
-        const currentDist = Math.hypot(dx, dy);
-        if (currentDist > 0) {
-            plot.mx = circle.cMX + (dx / currentDist) * circle.rMath;
-            plot.my = circle.cMY + (dy / currentDist) * circle.rMath;
-        }
-    }
-
-    function calculateProjectedLinePoints(refLine, dragStart, dragCurrent, mode) {
-        const refDx = refLine.mX2 - refLine.mX1; const refDy = refLine.mY2 - refLine.mY1; const refLen = Math.hypot(refDx, refDy);
-        if (refLen === 0) return { x1: dragStart.x, y1: dragStart.y, x2: dragCurrent.x, y2: dragCurrent.y };
-        const ux = refDx / refLen; const uy = refDy / refLen;
-        const dragDx = dragCurrent.x - dragStart.x; const dragDy = dragCurrent.y - dragStart.y;
         
-        if (mode === 'parallel') {
-            const prj = dragDx * ux + dragDy * uy;
-            return { x1: dragStart.x, y1: dragStart.y, x2: dragStart.x + ux * prj, y2: dragStart.y + uy * prj };
-        } else {
-            const nx = -uy; const ny = ux; const prj = dragDx * nx + dragDy * ny;
-            return { x1: dragStart.x, y1: dragStart.y, x2: dragStart.x + nx * prj, y2: dragStart.y + ny * prj };
-        }
-    }
-
-    function syncBoundDrawings() {
-        drawings.forEach(d => {
-            if (d.bindP1 && d.bindP2) {
-                const p1 = plots.find(p => p.id === d.bindP1); const p2 = plots.find(p => p.id === d.bindP2);
-                if (p1 && p2) { d.mX1 = p1.mx; d.mY1 = p1.my; d.mX2 = p2.mx; d.mY2 = p2.my; }
-            }
-            if ((d.type === 'parallel' || d.type === 'perpend') && d.parentId !== undefined) {
-                const pLine = drawings.find(item => item.id === d.parentId);
-                if (pLine) {
-                    const pts = calculateProjectedLinePoints(pLine, {x: d.anchorMX, y: d.anchorMY}, {x: d.dragEndMX, y: d.dragEndMY}, d.type);
-                    d.mX1 = pts.x1; d.mY1 = pts.y1; d.mX2 = pts.x2; d.mY2 = pts.y2;
-                }
-            }
-            if (d.type === 'arc' && d.bindCenter && d.bindStart && d.bindEnd) {
-                const pC = plots.find(p => p.id === d.bindCenter); const pS = plots.find(p => p.id === d.bindStart); const pE = plots.find(p => p.id === d.bindEnd);
-                if (pC && pS && pE) {
-                    d.cMX = pC.mx; d.cMY = pC.my; d.rMath = Math.hypot(pS.mx - pC.mx, pS.my - pC.my);
-                    d.startAng = Math.atan2(pS.my - pC.my, pS.mx - pC.mx); d.endAng = Math.atan2(pE.my - pC.my, pE.mx - pC.mx);
-                    const currentDistE = Math.hypot(pE.mx - pC.mx, pE.my - pC.my);
-                    if (Math.abs(currentDistE - d.rMath) > 0.01) {
-                        pE.mx = pC.mx + ((pE.mx - pC.mx) / currentDistE) * d.rMath; pE.my = pC.my + ((pE.my - pC.my) / currentDistE) * d.rMath;
-                        d.endAng = Math.atan2(pE.my - pC.my, pE.mx - pC.mx);
-                    }
-                }
-            }
+        drawings.forEach(d => { if (d.type === 'freehand') drawFreehandPath(d); });
+        drawGroupsBoundingBox();
+        plots.forEach(p => {
+            const s = toScreen(p.mx, p.my); ctx.beginPath(); ctx.arc(s.x, s.y, p.isFixed ? 10 : 8, 0, Math.PI*2);
+            if (selectedPlotIds.includes(p.id)) { ctx.save(); ctx.shadowBlur = 14; ctx.shadowColor = '#00f5d4'; ctx.fillStyle = '#00f5d4'; ctx.fill(); ctx.restore(); } 
+            else { ctx.fillStyle = p.isFixed ? '#ff3333' : p.color || '#fff'; ctx.fill(); }
+            ctx.strokeStyle = '#0d1f16'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(p.id, s.x + 12, s.y - 4);
         });
+        processAndDrawMeasurements();
+        drawLivePreviewAndTools();
     }
 
-    function draw教科背景() {
+    function drawBackgroundGrids() {
         if (gridType === 0) return;
-        ctx.save(); const gridPx = baseGridSize * scale;
-
-        if (gridType === 1) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)'; ctx.lineWidth = 1;
-            const tlM = toMath(0, 0); const brM = toMath(canvas.width, canvas.height);
-            const minX = Math.floor(Math.min(tlM.x, brM.x)) - 2; const maxX = Math.ceil(Math.max(tlM.x, brM.x)) + 2;
-            const minY = Math.floor(Math.min(tlM.y, brM.y)) - 2; const maxY = Math.ceil(Math.max(tlM.y, brM.y)) + 2;
-
-            for (let mx = minX; mx <= maxX; mx += coordStepUnit) { const sP = toScreen(mx, 0); ctx.beginPath(); ctx.moveTo(sP.x, 0); ctx.lineTo(sP.x, canvas.height); ctx.stroke(); }
-            for (let my = minY; my <= maxY; my += coordStepUnit) { const sP = toScreen(0, my); ctx.beginPath(); ctx.moveTo(0, sP.y); ctx.lineTo(canvas.width, sP.y); ctx.stroke(); }
-        } else if (gridType === 2) {
-            const startY = offsetY % (gridPx * 1.5);
-            for (let y = startY - gridPx * 3; y < canvas.height + gridPx * 3; y += gridPx * 1.5) {
-                ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, y + gridPx * 0.35); ctx.lineTo(canvas.width, y + gridPx * 0.35); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, y + gridPx * 1.05); ctx.lineTo(canvas.width, y + gridPx * 1.05); ctx.stroke();
-                ctx.strokeStyle = 'rgba(255, 100, 200, 0.45)'; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.moveTo(0, y + gridPx * 0.7); ctx.lineTo(canvas.width, y + gridPx * 0.7); ctx.stroke();
-            }
-        } else if (gridType === 3) {
-            const step = gridPx * 2; const startX = offsetX % step; const startY = offsetY % step;
-            for (let x = startX - step; x < canvas.width + step; x += step) {
-                for (let y = startY - step; y < canvas.height + step; y += step) {
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, step, step);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
-                    ctx.beginPath(); ctx.moveTo(x + step / 2, y); ctx.lineTo(x + step / 2, y + step); ctx.moveTo(x, y + step / 2); ctx.lineTo(x + step, y + step / 2); ctx.stroke(); ctx.setLineDash([]);
+        const w = canvas.width, h = canvas.height;
+        const cx = w / 2 + offsetX, cy = h / 2 + offsetY;
+        const step = baseGridSize * scale;
+        ctx.save();
+        
+        if (gridType === 1 || gridType === 4) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; ctx.lineWidth = 1;
+            for (let x = cx % step; x < w; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = cy % step; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+        }
+        if (gridType === 2) {
+            for (let y = cy % (step*2); y < h; y += step*2) {
+                for(let i=0; i<4; i++) {
+                    ctx.strokeStyle = (i===2) ? 'rgba(255, 77, 77, 0.35)' : 'rgba(255, 255, 255, 0.12)';
+                    ctx.beginPath(); ctx.moveTo(0, y + i*(step*0.3)); ctx.lineTo(w, y + i*(step*0.3)); ctx.stroke();
                 }
+            }
+        }
+        if (gridType === 3) {
+            let boxSize = step * 2.5; 
+            ctx.strokeStyle = 'rgba(46, 139, 87, 0.4)'; ctx.lineWidth = 1.5; 
+            for (let x = cx % boxSize; x < w; x += boxSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = cy % boxSize; y < h; y += boxSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+            
+            ctx.strokeStyle = 'rgba(60, 179, 113, 0.3)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); 
+            for (let x = (cx % boxSize) + boxSize/2; x < w; x += boxSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = (cy % boxSize) + boxSize/2; y < h; y += boxSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+        }
+        if (gridType === 4) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)'; ctx.lineWidth = 2;
+            ctx.beginPath(); moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+            if (showCoordLabels) {
+                ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '11px monospace';
+                let startM = toMath(0, h), endM = toMath(w, 0);
+                for (let mx = Math.ceil(startM.x/coordStepUnit)*coordStepUnit; mx <= endM.x; mx += coordStepUnit) { if (Math.abs(mx) > 0.001) ctx.fillText(mx.toString(), toScreen(mx, 0).x - 6, cy + 14); }
+                for (let my = Math.ceil(startM.y/coordStepUnit)*coordStepUnit; my <= endM.y; my += coordStepUnit) { if (Math.abs(my) > 0.001) ctx.fillText(my.toString(), cx + 8, toScreen(0, my).y + 4); }
             }
         }
         ctx.restore();
     }
 
-    function drawExtendedLine(rCtx, x1, y1, x2, y2, lType) {
-        if (lType === 'segment') { rCtx.beginPath(); rCtx.moveTo(x1, y1); rCtx.lineTo(x2, y2); rCtx.stroke(); return; }
-        const dx = x2 - x1; const dy = y2 - y1; const len = Math.hypot(dx, dy); if (len === 0) return;
-        const ux = dx / len; const uy = dy / len; const diag = Math.hypot(canvas.width, canvas.height) * 2; 
-        rCtx.beginPath();
-        if (lType === 'line') { rCtx.moveTo(x1 - ux * diag, y1 - uy * diag); rCtx.lineTo(x2 + ux * diag, y2 + uy * diag); }
-        else if (lType === 'ray') { rCtx.moveTo(x1, y1); rCtx.lineTo(x2 + ux * diag, y2 + uy * diag); }
-        rCtx.stroke();
+    function drawMathFunctionGraph() {
+        ctx.save(); ctx.strokeStyle = '#00f5d4'; ctx.lineWidth = 3; ctx.beginPath(); let first = true;
+        let convertedFormula = translateKidsToJs(document.getElementById('kidsFormulaInput').value);
+        for (let sx = 0; sx < canvas.width; sx += 3) {
+            let x = toMath(sx, 0).x; let y = 0;
+            try { y = eval(convertedFormula); } catch(e) { break; }
+            if (typeof y === 'number' && !isNaN(y) && isFinite(y)) {
+                let s = toScreen(x, y); if (first) { ctx.moveTo(s.x, s.y); first = false; } else { ctx.lineTo(s.x, s.y); }
+            }
+        }
+        ctx.stroke(); ctx.restore();
     }
 
-    function renderStyledLineSegment(rCtx, ptA, ptB, thickness, type, baseColor) {
-        const sA = toScreen(ptA.mx, ptA.my); const sB = toScreen(ptB.mx, ptB.my); const distance = Math.hypot(sB.x - sA.x, sB.y - sA.y);
-        
-        if (type === 'fude') {
-            const steps = Math.max(1, Math.floor(distance / 1.2)); const prA = ptA.pr || 1.0; const prB = ptB.pr || 1.0;
-            rCtx.fillStyle = baseColor;
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps; const currX = sA.x + (sB.x - sA.x) * t; const currY = sA.y + (sB.y - sA.y) * t; const currPr = prA + (prB - prA) * t;
-                rCtx.save(); rCtx.translate(currX, currY); rCtx.rotate(Math.PI / 4);
-                const rW = thickness * scale * currPr * 1.6; const rH = thickness * scale * currPr * 0.65;
-                rCtx.beginPath(); rCtx.ellipse(0, 0, rW, rH, 0, 0, Math.PI * 2); rCtx.fill(); rCtx.restore();
+    function setupPenContext(ctx, d) {
+        ctx.strokeStyle = d.color || '#fff'; ctx.lineWidth = d.thickness || 6; ctx.setLineDash(d.lineStyle === 'dashed' ? [8, 6] : []);
+        ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0;
+        if (d.penType === 'pencil') { ctx.globalAlpha = 0.75; ctx.lineWidth = Math.max(1.5, d.thickness * 0.4); }
+        else if (d.penType === 'highlighter') { ctx.globalAlpha = 0.45; ctx.globalCompositeOperation = 'multiply'; }
+        else if (d.penType === 'neon') { ctx.shadowBlur = 16; ctx.shadowColor = d.color || '#00f5d4'; }
+    }
+
+    function drawGeomObject(d) {
+        ctx.save(); setupPenContext(ctx, d);
+        if (selectedDrawingIds.includes(d.id)) { ctx.shadowBlur = 12; ctx.shadowColor = '#00f5d4'; ctx.strokeStyle = '#00f5d4'; }
+        const p1 = toScreen(d.mX1, d.mY1); const p2 = toScreen(d.mX2, d.mY2);
+        if (d.type === 'segment') { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); } 
+        else if (d.type === 'line') {
+            let a = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            ctx.beginPath(); ctx.moveTo(p1.x - Math.cos(a)*3000, p1.y - Math.sin(a)*3000); ctx.lineTo(p1.x + Math.cos(a)*3000, p1.y + Math.sin(a)*3000); ctx.stroke();
+        } 
+        else if (d.type === 'ray') {
+            let a = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p1.x + Math.cos(a)*3000, p1.y + Math.sin(a)*3000); ctx.stroke();
+        } 
+        else if (d.type === 'vector') {
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+            let a = Math.atan2(p2.y - p1.y, p2.x - p1.x); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.moveTo(p2.x, p2.y);
+            ctx.lineTo(p2.x - 16*Math.cos(a-Math.PI/6), p2.y - 16*Math.sin(a-Math.PI/6)); ctx.lineTo(p2.x - 16*Math.cos(a+Math.PI/6), p2.y - 16*Math.sin(a+Math.PI/6)); ctx.fill();
+        } 
+        else if (d.type === 'circle') { ctx.beginPath(); ctx.arc(p1.x, p1.y, Math.hypot(p2.x - p1.x, p2.y - p1.y), 0, Math.PI*2); ctx.stroke(); } 
+        else if (d.type === 'arc') {
+            let r = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            ctx.beginPath(); ctx.arc(p1.x, p1.y, r, d.startAngle || 0, d.endAngle || Math.PI); ctx.stroke();
+            if(currentMode === 'select') {
+                ctx.fillStyle = '#00f5d4';
+                ctx.beginPath(); ctx.arc(p1.x + r*Math.cos(d.startAngle||0), p1.y + r*Math.sin(d.startAngle||0), 6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(p1.x + r*Math.cos(d.endAngle||Math.PI), p1.y + r*Math.sin(d.endAngle||Math.PI), 6, 0, Math.PI*2); ctx.fill();
             }
-        } else if (type === 'chalk') {
-            rCtx.lineWidth = thickness * scale; rCtx.beginPath(); rCtx.moveTo(sA.x, sA.y); rCtx.lineTo(sB.x, sB.y); rCtx.stroke();
-            const steps = Math.floor(distance / 4); rCtx.fillStyle = baseColor;
-            for(let i=0; i<steps; i++) {
-                const t = i/steps; const cx = sA.x + (sB.x - sA.x)*t + (Math.random() - 0.5)*thickness*1.2*scale; const cy = sA.y + (sB.y - sA.y)*t + (Math.random() - 0.5)*thickness*1.2*scale;
-                if(Math.random() > 0.4) rCtx.fillRect(cx, cy, 1.5*scale, 1.5*scale);
+        }
+        ctx.restore();
+    }
+
+    function drawFreehandPath(d) {
+        if (!d.pts || d.pts.length < 2) return;
+        ctx.save(); setupPenContext(ctx, d);
+        if (d.penType === 'chalk') {
+            for (let i = 1; i < d.pts.length; i++) {
+                const s1 = toScreen(d.pts[i-1].x, d.pts[i-1].y); const s2 = toScreen(d.pts[i].x, d.pts[i].y);
+                ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke(); ctx.fillStyle = d.color;
+                for(let j=0; j<2; j++) ctx.fillRect(s2.x + (Math.random()-0.5)*d.thickness*1.5, s2.y + (Math.random()-0.5)*d.thickness*1.5, 1.2, 1.2);
             }
-        } else if (type === 'pencil') {
-            rCtx.lineWidth = thickness * scale * 0.6; rCtx.beginPath(); rCtx.moveTo(sA.x, sA.y); rCtx.lineTo(sB.x, sB.y); rCtx.stroke();
-            rCtx.lineWidth = thickness * scale * 0.2; rCtx.beginPath(); rCtx.moveTo(sA.x + 0.5, sA.y - 0.5); rCtx.lineTo(sB.x + 0.5, sB.y - 0.5); rCtx.stroke();
         } else {
-            rCtx.lineWidth = (type === 'marker' ? thickness * 1.5 : thickness) * scale; rCtx.beginPath(); rCtx.moveTo(sA.x, sA.y); rCtx.lineTo(sB.x, sB.y); rCtx.stroke();
+            ctx.beginPath(); ctx.moveTo(toScreen(d.pts[0].x, d.pts[0].y).x, toScreen(d.pts[0].x, d.pts[0].y).y);
+            for (let i = 1; i < d.pts.length; i++) ctx.lineTo(toScreen(d.pts[i].x, d.pts[i].y).x, toScreen(d.pts[i].x, d.pts[i].y).y);
+            ctx.stroke();
         }
+        ctx.restore();
     }
 
-    function runRedrawCore() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        draw教科背景();
-
-        plots.forEach(p => { if (p.boundCircleId) snapToCircle(p); });
-        syncBoundDrawings();
-
-        drawings.forEach((item) => {
-            ctx.save();
-            const isSelected = selectedDrawingIds.includes(item.id) || groups.some(g => g.drawingIds.includes(item.id)) || selectedBaseLineId === item.id;
-            if (isSelected) ctx.shadowBlur = 12; ctx.shadowColor = selectedBaseLineId === item.id ? '#00f5d4' : '#bc13fe';
-            applyPenStyle(ctx, item.penType || 'chalk', item.color, item.isDashed);
-
-            if ((item.type === 'segment' || item.type === 'parallel' || item.type === 'perpend' || item.type === 'line' || item.type === 'ray') && item.mX1 !== undefined) {
-                ctx.lineWidth = item.thickness * scale; const sP1 = toScreen(item.mX1, item.mY1); const sP2 = toScreen(item.mX2, item.mY2);
-                drawExtendedLine(ctx, sP1.x, sP1.y, sP2.x, sP2.y, item.lineLayout || 'segment');
-            } else if (item.type === 'compass') {
-                ctx.lineWidth = item.thickness * scale; const sC = toScreen(item.cMX, item.cMY); const r = (item.rMath / coordStepUnit) * baseGridSize * scale;
-                ctx.beginPath(); ctx.arc(sC.x, sC.y, r, 0, Math.PI * 2); ctx.stroke();
-            } else if (item.type === 'arc') {
-                ctx.lineWidth = item.thickness * scale; const sC = toScreen(item.cMX, item.cMY); const r = (item.rMath / coordStepUnit) * baseGridSize * scale;
-                ctx.beginPath(); ctx.arc(sC.x, sC.y, r, -item.startAng, -item.endAng, true); ctx.stroke();
-            } else if (item.type === 'free' && item.points.length >= 2) {
-                for (let i = 1; i < item.points.length; i++) { renderStyledLineSegment(ctx, item.points[i-1], item.points[i], item.thickness, item.penType || 'chalk', item.color); }
+    function drawGroupsBoundingBox() {
+        if (groups.length === 0) return;
+        ctx.save(); ctx.strokeStyle = 'rgba(0, 245, 212, 0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+        groups.forEach(g => {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity; let hasPoints = false;
+            g.plotIds.forEach(id => {
+                let p = plots.find(pt => pt.id === id);
+                if (p) {
+                    let s = toScreen(p.mx, p.my);
+                    if(s.x < minX) minX = s.x; if(s.x > maxX) maxX = s.x; if(s.y < minY) minY = s.y; if(s.y > maxY) maxY = s.y; hasPoints = true;
+                }
+            });
+            if (hasPoints) {
+                ctx.strokeRect(minX - 15, minY - 15, (maxX - minX) + 30, (maxY - minY) + 30);
+                ctx.fillStyle = 'rgba(0, 245, 212, 0.02)'; ctx.fillRect(minX - 15, minY - 15, (maxX - minX) + 30, (maxY - minY) + 30);
             }
-            ctx.restore();
         });
-
-        plots.forEach(p => {
-            ctx.save(); if (selectedPlotIds.includes(p.id) || groups.some(g => g.plotIds.includes(p.id))) { ctx.shadowBlur = 15; ctx.shadowColor = '#00f5d4'; }
-            const sP = toScreen(p.mx, p.my); ctx.fillStyle = p.color;
-            if (p.boundCircleId) ctx.fillStyle = "#00f5d4";
-            if (p.isFixed) ctx.fillStyle = "#ff4d4d";
-            ctx.beginPath(); ctx.arc(sP.x, sP.y, p.isFixed ? 9 : 7, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
-            
-            const dynamicFontSize = Math.max(10, Math.min(24, 16 * scale));
-            ctx.fillStyle = p.isFixed ? '#ff4d4d' : '#ffd166'; ctx.font = `bold ${dynamicFontSize}px sans-serif`;
-            ctx.fillText(p.id, sP.x - (dynamicFontSize/3), sP.y - (dynamicFontSize*0.8)); ctx.restore();
-        });
-
-        if (isDrawing && dragStartMath && liveCurrentMath) {
-            ctx.save(); const sStart = toScreen(dragStartMath.x, dragStartMath.y); const sCurrent = toScreen(liveCurrentMath.x, liveCurrentMath.y);
-            applyPenStyle(ctx, currentPenType, currentColor, false);
-
-            if (currentMode === 'connect' || ((currentMode === 'parallel' || currentMode === 'perpend') && selectedBaseLineId !== null)) {
-                ctx.save(); ctx.fillStyle = 'rgba(200, 200, 200, 0.25)'; ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; ctx.lineWidth = 2;
-                let angle = Math.atan2(sCurrent.y - sStart.y, sCurrent.x - sStart.x);
-                if ((currentMode === 'parallel' || currentMode === 'perpend') && selectedBaseLineId !== null) {
-                    const ref = drawings.find(item => item.id === selectedBaseLineId);
-                    const pts = calculateProjectedLinePoints(ref, dragStartMath, liveCurrentMath, currentMode);
-                    const sP2_calculated = toScreen(pts.x2, pts.y2); angle = Math.atan2(sP2_calculated.y - sStart.y, sP2_calculated.x - sStart.x);
-                }
-                const len = Math.hypot(sCurrent.x - startX, sCurrent.y - startY);
-                ctx.translate(sStart.x, sStart.y); ctx.rotate(angle); const rulerLen = len > 10 ? len : 300;
-                ctx.fillRect(0, -15, rulerLen, 30); ctx.strokeRect(0, -15, rulerLen, 30); ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                for (let d = 0; d < rulerLen; d += 15) { ctx.beginPath(); ctx.moveTo(d, -15); ctx.lineTo(d, -7); ctx.stroke(); }
-                ctx.restore();
-
-                ctx.save(); applyPenStyle(ctx, currentPenType, currentColor, false); ctx.lineWidth = currentThickness * scale;
-                let goalX = sCurrent.x, goalY = sCurrent.y;
-                if (currentMode !== 'connect') {
-                    const ref = drawings.find(item => item.id === selectedBaseLineId);
-                    const pts = calculateProjectedLinePoints(ref, dragStartMath, liveCurrentMath, currentMode);
-                    const sGoal = toScreen(pts.x2, pts.y2); goalX = sGoal.x; goalY = sGoal.y;
-                }
-                drawExtendedLine(ctx, sStart.x, sStart.y, goalX, goalY, currentLineType); ctx.restore();
-            } else if (currentMode === 'compass' || currentMode === 'arc') {
-                ctx.lineWidth = currentThickness * scale; const rRadius = Math.hypot(sCurrent.x - sStart.x, sCurrent.y - sStart.y);
-                if (rRadius > 1) { ctx.beginPath(); if (currentMode === 'compass') { ctx.arc(sStart.x, sStart.y, rRadius, 0, Math.PI * 2); } else { ctx.arc(sStart.x, sStart.y, rRadius, 0, Math.PI, true); } ctx.stroke(); }
-                ctx.save(); ctx.strokeStyle = 'rgba(220, 220, 220, 0.8)'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-                ctx.beginPath(); ctx.moveTo(sStart.x, sStart.y); ctx.lineTo((sStart.x + sCurrent.x)/2, (sStart.y + sCurrent.y)/2 - 30); ctx.lineTo(sCurrent.x, sCurrent.y); ctx.stroke();
-                ctx.fillStyle = '#ff4d4d'; ctx.beginPath(); ctx.arc(sStart.x, sStart.y, 4, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = currentColor; ctx.beginPath(); ctx.arc(sCurrent.x, sCurrent.y, 5, 0, Math.PI*2); ctx.fill(); ctx.restore();
-            } else if (currentMode === 'free') {
-                if (activeFreehandPoints.length >= 2) {
-                    for (let i = 1; i < activeFreehandPoints.length; i++) { renderStyledLineSegment(ctx, activeFreehandPoints[i-1], activeFreehandPoints[i], currentThickness, currentPenType, currentColor); }
-                }
-                ctx.save(); ctx.fillStyle = currentColor; ctx.translate(sCurrent.x, sCurrent.y); ctx.rotate(-Math.PI / 4);
-                ctx.fillRect(0, -6, 24, 12); ctx.strokeStyle = '#fff'; ctx.strokeRect(0, -6, 24, 12);
-                ctx.fillStyle = '#ffcc99'; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(-8, 0); ctx.lineTo(0, 6); ctx.fill(); ctx.restore();
-            } else if (currentMode === 'lasso' && lassoPoints.length >= 2) {
-                ctx.strokeStyle = '#00f5d4'; ctx.lineWidth = 3; ctx.setLineDash([5, 5]);
-                ctx.beginPath(); ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y); lassoPoints.forEach(pt => ctx.lineTo(pt.x, pt.y)); ctx.stroke(); ctx.setLineDash([]);
-            }
-            ctx.restore();
-        }
-        updateMeasurePanelAndDrawBadges();
+        ctx.restore();
     }
 
-    function updateMeasurePanelAndDrawBadges() {
-        const out = document.getElementById('measure-output'); out.innerHTML = '';
-        activeMeasures.forEach(m => {
+    function toggleAngleFlip(idx) { if (activeMeasures[idx]) { activeMeasures[idx].flip = !activeMeasures[idx].flip; } }
+
+    function processAndDrawMeasurements() {
+        const outList = document.getElementById('measure-output'); outList.innerHTML = '';
+        
+        // 選択された直線の数式連動計算
+        if (currentMode === 'select' && selectedDrawingIds.length === 1 && gridType === 4) {
+            let activeDrawing = drawings.find(d => d.id === selectedDrawingIds[0]);
+            if (activeDrawing && ['line', 'segment', 'ray', 'vector'].includes(activeDrawing.type)) {
+                let dx = activeDrawing.mX2 - activeDrawing.mX1;
+                let dy = activeDrawing.mY2 - activeDrawing.mY1;
+                if (Math.abs(dx) > 0.0001) {
+                    let slope = dy / dx;
+                    let intercept = activeDrawing.mY1 - slope * activeDrawing.mX1;
+                    let sign = intercept >= 0 ? "+ " : "- ";
+                    let absInt = Math.abs(intercept).toFixed(2);
+                    let eqString = `y = ${slope.toFixed(2)}x ${sign}${absInt}`;
+                    
+                    let item = document.createElement('li');
+                    item.style.color = '#00f5d4';
+                    item.innerText = (currentLang === 'ja' ? '選択中の直線: ' : 'Selected Line: ') + eqString;
+                    outList.appendChild(item);
+                    
+                    let palInput = document.getElementById('kidsFormulaInput');
+                    if (document.activeElement !== palInput && document.activeElement.id !== 'fracNumerator' && document.activeElement.id !== 'fracDenominator') {
+                        palInput.value = `${slope.toFixed(2)}*x ${intercept >= 0 ? '+' : '-'}${absInt}`;
+                        parseAndSyncFractionDisplay(palInput.value);
+                    }
+                } else {
+                    let item = document.createElement('li');
+                    item.style.color = '#ff4d4d';
+                    item.innerText = `x = ${activeDrawing.mX1.toFixed(2)}`;
+                    outList.appendChild(item);
+                }
+            }
+        }
+
+        activeMeasures.forEach((m, idx) => {
+            if (m.type === 'len') {
+                const p1 = plots.find(p => p.id === m.p1); const p2 = plots.find(p => p.id === m.p2); if (!p1 || !p2) return;
+                let dist = Math.hypot(p2.mx - p1.mx, p2.my - p1.my);
+                outList.appendChild(document.createElement('li')).innerText = currentLang === 'ja' ? `直線 ${p1.id}${p2.id} = ${dist.toFixed(2)}` : `Line ${p1.id}${p2.id} = ${dist.toFixed(2)}`;
+                const s1 = toScreen(p1.mx, p1.my); const s2 = toScreen(p2.mx, p2.my);
+                ctx.save(); ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
+                ctx.fillStyle = '#ffff00'; ctx.font = 'bold 13px monospace'; ctx.fillText(dist.toFixed(2), (s1.x+s2.x)/2 + 12, (s1.y+s2.y)/2); ctx.restore();
+            }
             if (m.type === 'ang') {
-                const p1 = plots.find(p => p.id === m.points[0]); const p2 = plots.find(p => p.id === m.points[1]); const p3 = plots.find(p => p.id === m.points[2]);
-                if (p1 && p2 && p3) {
-                    let deg = calcAngleThreePoints(p1, p2, p3); const s2 = toScreen(p2.mx, p2.my);
-                    const li = document.createElement('li'); li.innerText = `📐 ∠${p1.id}${p2.id}${p3.id} = ${deg.toFixed(1)}°`; out.appendChild(li);
-                    ctx.save(); ctx.font = 'bold 13px sans-serif'; ctx.fillStyle = 'rgba(0,0,0,0.85)';
-                    ctx.fillRect(s2.x - 32, s2.y + 15, 72, 20); ctx.strokeStyle = '#00f5d4'; ctx.strokeRect(s2.x - 32, s2.y + 15, 72, 20);
-                    ctx.fillStyle = '#fff'; ctx.fillText(`${deg.toFixed(1)}°`, s2.x - 24, s2.y + 30); ctx.restore();
-                }
-            } else if (m.type === 'len') {
-                const p1 = plots.find(p => p.id === m.points[0]); const p2 = plots.find(p => p.id === m.points[1]);
-                if (p1 && p2) {
-                    const dist = Math.hypot(p1.mx - p2.mx, p1.my - p2.my);
-                    const li = document.createElement('li'); li.innerText = `📏 辺${p1.id}${p2.id} = ${dist.toFixed(2)}`; out.appendChild(li);
-                }
+                const p1 = plots.find(p => p.id === m.p1); const p2 = plots.find(p => p.id === m.p2); const p3 = plots.find(p => p.id === m.p3); if (!p1 || !p2 || !p3) return;
+                let a1 = Math.atan2(p1.my - p2.my, p1.mx - p2.mx); let a3 = Math.atan2(p3.my - p2.my, p3.mx - p2.mx);
+                let diff = Math.abs(a3 - a1) * 180 / Math.PI; if (diff > 180) diff = 360 - diff; if (m.flip) diff = 360 - diff;
+                let btnLabel = currentLang === 'ja' ? '🔄 反転' : '🔄 Flip';
+                outList.appendChild(document.createElement('li')).innerHTML = `∠${p1.id}${p2.id}${p3.id} = ${diff.toFixed(1)}° <button class="btn-flip-angle" onclick="toggleAngleFlip(${idx})">${btnLabel}</button>`;
+                const s2 = toScreen(p2.mx, p2.my); ctx.save(); ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.arc(s2.x, s2.y, 24, -a1, -a3, !(m.flip ? (a1 > a3) : (a1 < a3))); ctx.stroke();
+                ctx.fillStyle = '#ff4d4d'; ctx.font = 'bold 13px monospace'; ctx.fillText(`${diff.toFixed(1)}°`, s2.x + 28, s2.y - 8); ctx.restore();
             }
         });
     }
 
-    function calcAngleThreePoints(p1, p2, p3) {
-        const ang1 = Math.atan2(p1.my - p2.my, p1.mx - p2.mx); const ang3 = Math.atan2(p3.my - p2.my, p3.mx - p2.mx);
-        let diff = Math.abs(ang3 - ang1); if (diff > Math.PI) diff = Math.PI * 2 - diff;
-        return diff * (180 / Math.PI);
-    }
+    function drawLivePreviewAndTools() {
+        if (!isDrawing) return;
+        ctx.save();
+        
+        if (['segment', 'line', 'ray', 'vector'].includes(currentMode) && dragStartMath) {
+            const p1 = toScreen(dragStartMath.x, dragStartMath.y);
+            ctx.strokeStyle = currentColor; ctx.lineWidth = currentThickness; ctx.globalAlpha = 0.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            if (currentMode === 'segment' || currentMode === 'vector') {
+                ctx.moveTo(p1.x, p1.y); ctx.lineTo(currentX, currentY);
+            } else {
+                let a = Math.atan2(currentY - p1.y, currentX - p1.x);
+                ctx.moveTo(p1.x - Math.cos(a)*3000, p1.y - Math.sin(a)*3000); ctx.lineTo(p1.x + Math.cos(a)*3000, p1.y + Math.sin(a)*3000);
+            }
+            ctx.stroke();
+        }
+        else if ((currentMode === 'compass' || currentMode === 'arc') && dragStartMath) {
+            const p1 = toScreen(dragStartMath.x, dragStartMath.y);
+            let r = Math.hypot(currentX - p1.x, currentY - p1.y);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
 
-    let initialPinchDist = null; let initialScale = 1.0; let pointerCache = [];
+            ctx.strokeStyle = currentColor; ctx.lineWidth = currentThickness; ctx.globalAlpha = 0.4;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.arc(p1.x, p1.y, r, 0, Math.PI*2); ctx.stroke();
+        }
+        else if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLine && dragStartMath) {
+            const p1 = toScreen(dragStartMath.x, dragStartMath.y);
+            let baseAng = Math.atan2(toScreen(selectedBaseLine.mX2, selectedBaseLine.mY2).y - toScreen(selectedBaseLine.mX1, selectedBaseLine.mY1).y, toScreen(selectedBaseLine.mX2, selectedBaseLine.mY2).x - toScreen(selectedBaseLine.mX1, selectedBaseLine.mY1).x);
+            let targetAng = (currentMode === 'parallel') ? baseAng : baseAng + Math.PI / 2;
+            
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 245, 212, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p1.x - Math.cos(targetAng)*3000, p1.y - Math.sin(targetAng)*3000);
+            ctx.lineTo(p1.x + Math.cos(targetAng)*3000, p1.y + Math.sin(targetAng)*3000);
+            ctx.stroke();
+            
+            ctx.translate(p1.x, p1.y);
+            ctx.rotate(targetAng);
+            ctx.fillStyle = 'rgba(255, 165, 0, 0.15)';
+            ctx.strokeStyle = 'rgba(255, 165, 0, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.fillRect(-200, -15, 400, 30);
+            ctx.strokeRect(-200, -15, 400, 30);
+            ctx.restore();
+        }
+        else if (currentMode === 'lasso' && lassoPoints.length > 0) {
+            ctx.strokeStyle = 'rgba(0, 245, 212, 0.85)'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+            ctx.fillStyle = 'rgba(0, 245, 212, 0.05)'; ctx.beginPath(); ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+            for(let i=1; i<lassoPoints.length; i++) ctx.lineTo(lassoPoints[i].x, lassoPoints[i].y);
+            ctx.stroke(); ctx.fill();
+        }
+        else if (currentMode === 'eraser' && eraserPath.length > 0) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 35; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(eraserPath[0].x, eraserPath[0].y);
+            for(let i=1; i<eraserPath.length; i++) ctx.lineTo(eraserPath[i].x, eraserPath[i].y);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(currentX, currentY);
+        ctx.fillStyle = '#ffffff'; ctx.font = '32px Arial';
+        
+        if (currentMode === 'free') {
+            ctx.rotate(-Math.PI / 4);
+            ctx.fillText(currentPenType === 'chalk' ? '🖍️' : '✏️', -10, 10);
+        } else if (['segment', 'line', 'ray', 'parallel', 'perpend'].includes(currentMode)) {
+            ctx.rotate(Math.PI / 6);
+            ctx.fillText('📏', -15, -5);
+        } else if (currentMode === 'vector') {
+            ctx.fillText('➔', -10, 10);
+        } 
+        else if (currentMode === 'compass' || currentMode === 'arc') {
+            if (dragStartMath) {
+                const centerS = toScreen(dragStartMath.x, dragStartMath.y);
+                let rotAngle = Math.atan2(currentY - centerS.y, currentX - centerS.x);
+                ctx.rotate(rotAngle + Math.PI/2);
+            }
+            ctx.fillText('🧭', -16, 16);
+        } else if (currentMode === 'eraser') {
+            ctx.fillText('🧼', -15, 15);
+        } else if (currentMode === 'plot') {
+            ctx.fillText('📍', -10, 10);
+        }
+        ctx.restore();
+    }
 
     function startDrawing(e) {
-        if (e.target.closest('.toolbar') || e.target.closest('.modal') || e.target.closest('.info-panel') || e.target.closest('.floating-trigger-btn')) return;
-        pointerCache.push(e); canvas.setPointerCapture(e.pointerId);
+        if (e.target !== canvas) return; isDrawing = true; const m = toMath(e.clientX, e.clientY);
+        dragStartMath = m; liveCurrentMath = m; startX = e.clientX; startY = e.clientY; currentX = e.clientX; currentY = e.clientY;
 
-        if (pointerCache.length === 2) {
-            isDrawing = false; initialPinchDist = Math.hypot(pointerCache[0].clientX - pointerCache[1].clientX, pointerCache[0].clientY - pointerCache[1].clientY);
-            initialScale = scale; return;
-        }
-        if (pointerCache.length > 1) return;
-
-        const pos = getMousePos(e); const mPos = toMath(pos.x, pos.y);
-        dragStartMath = mPos; liveCurrentMath = mPos; startX = pos.x; startY = pos.y;
-
-        if (currentMode === 'lasso') { isDrawing = true; lassoPoints = [pos]; return; }
-        if (currentMode === 'transform') {
-            const hitPlot = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 40);
-            if (hitPlot) {
-                const targetGroup = groups.find(g => g.plotIds.includes(hitPlot.id));
-                if (targetGroup) {
-                    saveHistory(); isDrawing = true; let gcx = 0, gcy = 0, count = 0; plots.filter(p => targetGroup.plotIds.includes(p.id)).forEach(p => { gcx += p.mx; gcy += p.my; count++; });
-                    if (count > 0) { gcx /= count; gcy /= count; }
-                    transformStartG = {
-                        group: targetGroup, cx: gcx, cy: gcy, startDist: Math.hypot(mPos.x - gcx, mPos.y - gcy),
-                        startPlots: plots.map(p => ({ id: p.id, mx: p.mx, my: p.my })), startDrawings: JSON.parse(JSON.stringify(drawings))
-                    };
+        if (currentMode === 'free') { saveHistory(); activeFreehandPoints = [{ x: m.x, y: m.y }]; }
+        else if (currentMode === 'plot') { saveHistory(); plots.push({ id: getNextLabel(), mx: m.x, my: m.y, color: currentColor }); }
+        else if (['p-triangle', 'p-iso-triangle', 'p-equ-triangle', 'p-right-triangle', 'p-square', 'p-rhombus', 'p-trapezoid', 'p-parallelogram'].includes(currentMode)) deployPresetShapeAt(currentMode, m.x, m.y);
+        else if (['parallel', 'perpend'].includes(currentMode)) {
+            let hit = null;
+            for(let d of drawings) {
+                if (['segment','line','ray','vector'].includes(d.type)) {
+                    if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 25) { hit = d; break; }
                 }
             }
-            return;
+            if(hit) selectedBaseLine = hit;
         }
-        if (currentMode === 'plot') { saveHistory(); plots.push({ id: getNextLabel(), mx: mPos.x, my: mPos.y, color: currentColor, isFixed: false, boundCircleId: null }); return; }
-        if (['parallel', 'perpend'].includes(currentMode)) {
-            const hitLine = drawings.find(item => { if (item.mX1 === undefined) return false; return distToSeg(pos, toScreen(item.mX1, item.mY1), toScreen(item.mX2, item.mY2)) < 24; });
-            if (hitLine) { selectedBaseLineId = hitLine.id; return; }
-            if (selectedBaseLineId !== null) { isDrawing = true; return; }
-        }
-        if (['connect','compass','arc'].includes(currentMode)) { isDrawing = true; return; }
-        if (currentMode === 'set-fixed') {
-            const hit = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
-            if (hit) { saveHistory(); hit.isFixed = !hit.isFixed; hit.color = hit.isFixed ? "#ff4d4d" : "#ffffff"; }
-            return;
-        }
-        if (currentMode === 'set-bound') {
-            const hitPlot = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
-            if (hitPlot) { connectStartPlot = hitPlot; document.getElementById('measure-instructions').innerText = `点【${hitPlot.id}】選択中。円の軌道線をタップ。`; return; }
-            if (connectStartPlot) {
-                const hitCircle = findCircleDrawingAt(pos);
-                if (hitCircle) {
-                    saveHistory(); connectStartPlot.boundCircleId = hitCircle.id; snapToCircle(connectStartPlot);
-                    document.getElementById('measure-instructions').innerText = `点【${connectStartPlot.id}】を円周に拘束しました。`; connectStartPlot = null;
+        else if (currentMode === 'measure-len') {
+            let hit = null;
+            for(let d of drawings) {
+                if (['segment','line','ray','vector'].includes(d.type)) {
+                    if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 22) { hit = d; break; }
                 }
             }
-            return;
+            if (hit && hit.bindP1 && hit.bindP2) {
+                saveHistory();
+                if (!activeMeasures.some(m => m.type === 'len' && m.p1 === hit.bindP1 && m.p2 === hit.bindP2)) activeMeasures.push({ type: 'len', p1: hit.bindP1, p2: hit.bindP2 });
+            }
         }
-        if (['measure-ang', 'measure-len'].includes(currentMode)) {
-            const hit = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 38);
-            if (hit) {
-                measureAngPoints.push(hit.id); const targetCount = currentMode === 'measure-ang' ? 3 : 2;
-                if (measureAngPoints.length === targetCount) {
-                    saveHistory(); activeMeasures.push({ type: currentMode === 'measure-ang' ? 'ang' : 'len', points: [...measureAngPoints] }); measureAngPoints = [];
+        else if (currentMode === 'measure-ang') {
+            let grabbed = null;
+            for (let p of plots) { if (Math.hypot(e.clientX - toScreen(p.mx, p.my).x, e.clientY - toScreen(p.mx, p.my).y) < 22) { grabbed = p; break; } }
+            if (grabbed) {
+                measureClickSequence.push(grabbed.id);
+                if (measureClickSequence.length === 3) {
+                    saveHistory(); activeMeasures.push({ type: 'ang', p1: measureClickSequence[0], p2: measureClickSequence[1], p3: measureClickSequence[2], flip: false });
+                    measureClickSequence = [];
                 }
             }
-            return;
         }
-        if (currentMode === 'select') {
-            isDrawing = true; let hitPlot = plots.find(p => !p.isFixed && Math.hypot(toScreen(p.mx, p.my).x - pos.x, toScreen(p.mx, p.my).y - pos.y) < 48);
-            if (hitPlot) { saveHistory(); grabbedPlot = hitPlot; }
-            else { grabbedPlot = { id: '__CAM__' }; startX = pos.x; startY = pos.y; }
-            return;
+        else if (['select', 'set-fixed', 'set-bound'].includes(currentMode)) {
+            grabbedPlot = null; grabbedArcInfo = null; selectedDrawingIds = [];
+            for (let p of plots) { if (Math.hypot(e.clientX - toScreen(p.mx, p.my).x, e.clientY - toScreen(p.mx, p.my).y) < 22) { grabbedPlot = p; break; } }
+            
+            if (!grabbedPlot && currentMode === 'select') {
+                for (let d of drawings) {
+                    if (d.type === 'arc') {
+                        let pC = toScreen(d.mX1, d.mY1); let r = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
+                        let pStart = { x: pC.x + r*Math.cos(d.startAngle), y: pC.y + r*Math.sin(d.startAngle) };
+                        let pEnd = { x: pC.x + r*Math.cos(d.endAngle), y: pC.y + r*Math.sin(d.endAngle) };
+                        if (Math.hypot(e.clientX - pStart.x, e.clientY - pStart.y) < 24) { grabbedArcInfo = { arc: d, node: 'start' }; saveHistory(); break; }
+                        if (Math.hypot(e.clientX - pEnd.x, e.clientY - pEnd.y) < 24) { grabbedArcInfo = { arc: d, node: 'end' }; saveHistory(); break; }
+                    }
+                }
+            }
+            if (grabbedPlot) {
+                if (currentMode === 'set-fixed') { saveHistory(); grabbedPlot.isFixed = !grabbedPlot.isFixed; } 
+                else if (currentMode === 'select') { saveHistory(); groups.forEach(g => { if (g.plotIds.includes(grabbedPlot.id)) selectedPlotIds = [...g.plotIds]; }); }
+            } else if (!grabbedArcInfo) {
+                for(let d of drawings) {
+                    if (['segment','line','ray','vector'].includes(d.type)) {
+                        if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 18) {
+                            selectedDrawingIds = [d.id];
+                            document.getElementById('lineStyleSelect').value = d.lineStyle || 'solid';
+                            document.getElementById('penTypeSelect').value = d.penType || 'chalk';
+                            document.getElementById('thicknessSelect').value = String(d.thickness || 6); break;
+                        }
+                    }
+                }
+                if (selectedDrawingIds.length === 0) { startX = e.clientX; startY = e.clientY; }
+            }
         }
-        if (currentMode === 'eraser') { saveHistory(); isDrawing = true; eraseAt(pos.x, pos.y); return; }
-        if (currentMode === 'free') { saveHistory(); isDrawing = true; activeFreehandPoints = [{ mx: mPos.x, my: mPos.y, pr: 1.3 }]; }
+        else if (currentMode === 'lasso') lassoPoints = [{ x: e.clientX, y: e.clientY }];
+        else if (currentMode === 'eraser') { saveHistory(); eraserPath = [{ x: e.clientX, y: e.clientY }]; executeEraserLogic(e.clientX, e.clientY); }
     }
 
     function draw(e) {
-        for (let i = 0; i < pointerCache.length; i++) { if (pointerCache[i].pointerId === e.pointerId) { pointerCache[i] = e; break; } }
-        if (pointerCache.length === 2 && initialPinchDist !== null) {
-            const currentDist = Math.hypot(pointerCache[0].clientX - pointerCache[1].clientX, pointerCache[0].clientY - pointerCache[1].clientY);
-            if (currentDist > 10) scale = Math.max(0.3, Math.min(5.0, initialScale * (currentDist / initialPinchDist))); return;
-        }
-        if (pointerCache.length > 1) return;
+        if (!isDrawing) return; const m = toMath(e.clientX, e.clientY); liveCurrentMath = m;
+        let dx = e.clientX - startX; let dy = e.clientY - startY; currentX = e.clientX; currentY = e.clientY;
 
-        const pos = getMousePos(e); const mPos = toMath(pos.x, pos.y);
-        if (isDrawing) liveCurrentMath = mPos;
-        if (!isDrawing) return;
-
-        if (currentMode === 'lasso') lassoPoints.push(pos);
         if (currentMode === 'free') {
-            let lastPt = activeFreehandPoints[activeFreehandPoints.length - 1]; let dist = lastPt ? Math.hypot(mPos.x - lastPt.mx, mPos.y - lastPt.my) : 0;
-            let rawSpeedPr = Math.min(2.5, Math.max(0.12, 1.6 / (dist * 25 + 0.65)));
-            let targetPr = (e.pressure && e.pressure > 0) ? e.pressure * 2.2 : rawSpeedPr;
-            if (lastPt) targetPr = lastPt.pr * 0.72 + targetPr * 0.28;
-            activeFreehandPoints.push({ mx: mPos.x, my: mPos.y, pr: targetPr });
+            activeFreehandPoints.push({ x: m.x, y: m.y });
+            if (drawings.length === 0 || drawings[drawings.length-1].id !== 'live_free') {
+                drawings.push({ id: 'live_free', type: 'freehand', pts: activeFreehandPoints, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            } else { drawings[drawings.length-1].pts = activeFreehandPoints; }
         }
-        if (currentMode === 'transform' && transformStartG) {
-            const currentDist = Math.hypot(mPos.x - transformStartG.cx, mPos.y - transformStartG.cy);
-            if (transformStartG.startDist > 0.1) {
-                const ratio = currentDist / transformStartG.startDist;
-                plots.forEach(p => {
-                    const orig = transformStartG.startPlots.find(op => op.id === p.id);
-                    if (orig && transformStartG.group.plotIds.includes(p.id)) { p.mx = transformStartG.cx + (orig.mx - transformStartG.cx) * ratio; p.my = transformStartG.cy + (orig.my - transformStartG.cy) * ratio; }
-                });
+        else if (currentMode === 'select' && grabbedPlot) {
+            if (selectedPlotIds.includes(grabbedPlot.id)) {
+                let mDx = m.x - grabbedPlot.mx; let mDy = m.y - grabbedPlot.my;
+                plots.forEach(pt => { if (selectedPlotIds.includes(pt.id) && !pt.isFixed) { pt.mx += mDx; pt.my += mDy; } });
+            } else if (!grabbedPlot.isFixed) {
+                if (grabbedPlot.boundCircleId) {
+                    let tc = drawings.find(d => d.id === grabbedPlot.boundCircleId);
+                    if (tc) {
+                        let cAng = Math.atan2(m.y - tc.mY1, m.x - tc.mX1); let rM = Math.hypot(tc.mX2 - tc.mX1, tc.mY2 - tc.mY1);
+                        grabbedPlot.mx = tc.mX1 + rM * Math.cos(cAng); grabbedPlot.my = tc.mY1 + rM * Math.sin(cAng);
+                    }
+                } else { grabbedPlot.mx = m.x; grabbedPlot.my = m.y; }
+            }
+            drawings.forEach(d => {
+                let p1 = plots.find(p => p.id === d.bindP1); if (p1) { d.mX1 = p1.mx; d.mY1 = p1.my; }
+                let p2 = plots.find(p => p.id === d.bindP2); if (p2) { d.mX2 = p2.mx; d.mY2 = p2.my; }
+            });
+        }
+        else if (currentMode === 'select' && grabbedArcInfo) {
+            let arcD = grabbedArcInfo.arc;
+            let pC = toScreen(arcD.mX1, arcD.mY1);
+            let targetAng = Math.atan2(e.clientY - pC.y, e.clientX - pC.x);
+            
+            if (grabbedArcInfo.node === 'start') {
+                arcD.startAngle = targetAng;
+            } else {
+                arcD.endAngle = targetAng;
             }
         }
-        if (currentMode === 'select' && grabbedPlot) {
-            if (grabbedPlot.id === '__CAM__') { offsetX += (pos.x - startX); offsetY += (pos.y - startY); startX = pos.x; startY = pos.y; }
-            else { grabbedPlot.mx = mPos.x; grabbedPlot.my = mPos.y; if (grabbedPlot.boundCircleId) snapToCircle(grabbedPlot); }
+        else if (currentMode === 'select' && !grabbedPlot && !grabbedArcInfo && selectedDrawingIds.length === 0) {
+            offsetX += dx; offsetY += dy; startX = e.clientX; startY = e.clientY;
         }
-        if (currentMode === 'eraser') eraseAt(pos.x, pos.y);
+        else if (currentMode === 'lasso') lassoPoints.push({ x: e.clientX, y: e.clientY });
+        else if (currentMode === 'eraser') { eraserPath.push({ x: e.clientX, y: e.clientY }); executeEraserLogic(e.clientX, e.clientY); }
     }
 
     function stopDrawing(e) {
-        pointerCache = pointerCache.filter(p => p.pointerId !== e.pointerId); if (pointerCache.length < 2) initialPinchDist = null;
-        if (!isDrawing) return;
+        if (!isDrawing) return; isDrawing = false; const m = toMath(e.clientX, e.clientY);
+        if (currentMode === 'free') {
+            let liveIdx = drawings.findIndex(d => d.id === 'live_free'); if (liveIdx !== -1) drawings.splice(liveIdx, 1);
+            drawings.push({ id: generateUniqueId(), type: 'freehand', pts: activeFreehandPoints, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+        }
+        else if (['segment', 'line', 'ray', 'vector'].includes(currentMode) && dragStartMath) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
+                saveHistory(); const p1Id = getNextLabel(); const p2Id = getNextLabel();
+                plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: m.x, my: m.y, color: currentColor });
+                drawings.push({ id: generateUniqueId(), type: currentMode, mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            }
+        }
+        else if (currentMode === 'compass' && dragStartMath) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
+                saveHistory(); drawings.push({ id: generateUniqueId(), type: 'circle', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            }
+        }
+        else if (currentMode === 'arc' && dragStartMath) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
+                saveHistory(); drawings.push({ id: generateUniqueId(), type: 'arc', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, startAngle: 0, endAngle: Math.PI * 0.75, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            }
+        }
+        else if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLine && dragStartMath) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
+                saveHistory(); let baseAng = Math.atan2(selectedBaseLine.mY2 - selectedBaseLine.mY1, selectedBaseLine.mX2 - selectedBaseLine.mX1);
+                let targetAng = (currentMode === 'parallel') ? baseAng : baseAng + Math.PI / 2;
+                const p1Id = getNextLabel(); const p2Id = getNextLabel();
+                let mx2 = dragStartMath.x + Math.cos(targetAng) * 2; let my2 = dragStartMath.y + Math.sin(targetAng) * 2;
+                plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: mx2, my: my2, color: currentColor });
+                drawings.push({ id: generateUniqueId(), type: 'line', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: mx2, mY2: my2, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            }
+        }
+        else if (currentMode === 'set-bound' && grabbedPlot) {
+            let cc = null;
+            for(let d of drawings) {
+                if (d.type === 'circle') {
+                    let sC = toScreen(d.mX1, d.mY1); if (Math.abs(Math.hypot(e.clientX - sC.x, e.clientY - sC.y) - Math.hypot(toScreen(d.mX2, d.mY2).x - sC.x, toScreen(d.mX2, d.mY2).y - sC.y)) < 30) { cc = d; break; }
+                }
+            }
+            if (cc) { saveHistory(); grabbedPlot.boundCircleId = cc.id; }
+        }
+        else if (currentMode === 'lasso') processLassoSelection();
 
-        if (currentMode === 'lasso') processLassoSelection();
-        if (currentMode === 'connect' && dragStartMath && liveCurrentMath) {
-            if(Math.hypot(liveCurrentMath.x-dragStartMath.x, liveCurrentMath.y-dragStartMath.y) > 0.05) {
-                saveHistory(); drawings.push({
-                    id: generateUniqueId(), type: 'segment', lineLayout: currentLineType, mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: liveCurrentMath.x, mY2: liveCurrentMath.y,
-                    color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: false
-                });
-            }
-        }
-        if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLineId !== null && dragStartMath && liveCurrentMath) {
-            const ref = drawings.find(item => item.id === selectedBaseLineId);
-            if (ref && Math.hypot(liveCurrentMath.x - dragStartMath.x, liveCurrentMath.y - dragStartMath.y) > 0.05) {
-                saveHistory(); const pts = calculateProjectedLinePoints(ref, dragStartMath, liveCurrentMath, currentMode);
-                drawings.push({
-                    id: generateUniqueId(), type: currentMode, parentId: selectedBaseLineId, lineLayout: currentLineType, 
-                    anchorMX: dragStartMath.x, anchorMY: dragStartMath.y, dragEndMX: liveCurrentMath.x, dragEndMY: liveCurrentMath.y, mX1: pts.x1, mY1: pts.y1, mX2: pts.x2, mY2: pts.y2,
-                    color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: false
-                });
-            }
-            selectedBaseLineId = null; changeMode('select', document.getElementById('btn-select'));
-        }
-        if (currentMode === 'compass' && dragStartMath && liveCurrentMath) {
-            const rM = Math.hypot(liveCurrentMath.x-dragStartMath.x, liveCurrentMath.y-dragStartMath.y);
-            if(rM > 0.05) {
-                saveHistory(); drawings.push({ id: generateUniqueId(), type: 'compass', cMX: dragStartMath.x, cMY: dragStartMath.y, rMath: rM, color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: false });
-            }
-        }
-        if (currentMode === 'arc' && dragStartMath && liveCurrentMath) {
-            const rM = Math.hypot(liveCurrentMath.x - dragStartMath.x, liveCurrentMath.y - dragStartMath.y);
-            if (rM > 0.1) {
-                saveHistory(); const cId = getNextLabel(); const sId = getNextLabel(); const eId = getNextLabel();
-                const pC = { id: cId, mx: dragStartMath.x, my: dragStartMath.y, color: "#ff4d4d", isFixed: false, boundCircleId: null };
-                const pS = { id: sId, mx: liveCurrentMath.x, my: liveCurrentMath.y, color: "#ffffff", isFixed: false, boundCircleId: null };
-                const pE = { id: eId, mx: dragStartMath.x - (liveCurrentMath.x - dragStartMath.x), my: liveCurrentMath.y, color: "#00f5d4", isFixed: false, boundCircleId: null };
-                plots.push(pC, pS, pE);
-                drawings.push({
-                    id: generateUniqueId(), type: 'arc', bindCenter: cId, bindStart: sId, bindEnd: eId, cMX: pC.mx, cMY: pC.my, rMath: rM,
-                    startAng: Math.atan2(pS.my - pC.my, pS.mx - pC.mx), endAng: Math.atan2(pE.my - pC.my, pE.mx - pC.mx), color: currentColor, thickness: currentThickness, penType: currentPenType, isDashed: false
-                });
-                changeMode('select', document.getElementById('btn-select'));
-            }
-        }
-        if (currentMode === 'free' && activeFreehandPoints.length >= 2) {
-            if (currentPenType === 'fude') { activeFreehandPoints[activeFreehandPoints.length-1].pr *= 0.15; if(activeFreehandPoints.length >= 3) activeFreehandPoints[activeFreehandPoints.length-2].pr *= 0.4; }
-            drawings.push({ id: generateUniqueId(), type: 'free', points: [...activeFreehandPoints], color: currentColor, thickness: currentThickness, penType: currentPenType });
-        }
-        isDrawing = false; grabbedPlot = null; transformStartG = null; activeFreehandPoints = [];
+        grabbedPlot = null; grabbedArcInfo = null; dragStartMath = null; eraserPath = [];
     }
 
-    function eraseAt(x, y) {
-        const dynamicEraserRadius = 26 / scale; plots = plots.filter(p => Math.hypot(toScreen(p.mx, p.my).x - x, toScreen(p.mx, p.my).y - y) > (dynamicEraserRadius * scale));
-        drawings = drawings.filter((item) => {
-            if (item.mX1 !== undefined) { const keep = distToSeg({x,y}, toScreen(item.mX1, item.mY1), toScreen(item.mX2, item.mY2)) > (dynamicEraserRadius * scale); if (!keep && selectedBaseLineId === item.id) selectedBaseLineId = null; return keep; }
-            if (item.type === 'free') return item.points.every(pt => Math.hypot(toScreen(pt.mx, pt.my).x - x, toScreen(pt.mx, pt.my).y - y) > (dynamicEraserRadius * scale));
-            return true;
+    function executeEraserLogic(sx, sy) {
+        let mPt = toMath(sx, sy);
+        
+        // 1. 手書き線と円弧の削り取り判定
+        drawings.forEach(d => { 
+            if(d.type === 'freehand') {
+                d.pts = d.pts.filter(pt => Math.hypot(sx - toScreen(pt.x, pt.y).x, sy - toScreen(pt.x, pt.y).y) > 25); 
+            }
+            else if (d.type === 'arc') {
+                let pC = toScreen(d.mX1, d.mY1);
+                let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
+                let distToArcLine = Math.abs(Math.hypot(sx - pC.x, sy - pC.y) - rS);
+                
+                if (distToArcLine < 25) { 
+                    let eraseAngle = Math.atan2(sy - pC.y, sx - pC.x);
+                    let sA = d.startAngle;
+                    let eA = d.endAngle;
+                    
+                    let diffStart = Math.abs(eraseAngle - sA);
+                    let diffEnd = Math.abs(eraseAngle - eA);
+                    
+                    if (diffStart < diffEnd && diffStart < 0.5) {
+                        d.startAngle = eraseAngle + 0.12;
+                    } else if (diffEnd < diffStart && diffEnd < 0.5) {
+                        d.endAngle = eraseAngle - 0.12;
+                    }
+                }
+            }
+        });
+
+        // 2. 正円（circle）を消しゴムで削った場合、削られた円弧（arc）に変換するロジック
+        drawings.forEach(d => {
+            if (d.type === 'circle') {
+                let pC = toScreen(d.mX1, d.mY1);
+                let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
+                let distToCircleEdge = Math.abs(Math.hypot(sx - pC.x, sy - pC.y) - rS);
+                
+                // 消しゴムが円周の近くを通過したとき
+                if (distToCircleEdge < 25) {
+                    let hitAngle = Math.atan2(sy - pC.y, sx - pC.x);
+                    
+                    // 正円(0〜2π)を円弧(arc)モードに切り替え、なぞった位置を基準に開いた円弧にコンバート
+                    d.type = 'arc';
+                    
+                    // なぞった部分（hitAngle）の前後（約20度＝約0.35ラジアン）を切り取る
+                    let gap = 0.35;
+                    let startA = hitAngle + gap;
+                    let endA = hitAngle + (Math.PI * 2) - gap;
+                    
+                    // 角度を 0 〜 2π の範囲内に正規化
+                    if (startA > Math.PI * 2) startA -= Math.PI * 2;
+                    if (endA > Math.PI * 2) endA -= Math.PI * 2;
+                    
+                    // 開始角が終了角より小さくなるように調整
+                    if (startA > endA) {
+                        d.startAngle = startA;
+                        d.endAngle = endA + Math.PI * 2;
+                    } else {
+                        d.startAngle = startA;
+                        d.endAngle = endA;
+                    }
+                }
+            }
+        });
+        
+        // 配列クリーンアップ（極端に短くなった円弧などを削除）
+        drawings = drawings.filter(d => (d.type !== 'freehand' || d.pts.length > 1) && (d.type !== 'arc' || d.endAngle > d.startAngle));
+        
+        // 3. 直線系オブジェクトなどのヒット判定一括消去
+        let drawToDelete = null;
+        for(let d of drawings) {
+            if(['segment','line','ray','vector','arc'].includes(d.type)) {
+                if (d.type !== 'freehand' && d.type !== 'arc') {
+                    if (distToSegment({x: sx, y: sy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 16) { drawToDelete = d; break; }
+                }
+            }
+        }
+        if (drawToDelete) { 
+            drawings = drawings.filter(d => d.id !== drawToDelete.id); 
+            plots = plots.filter(p => p.id !== drawToDelete.bindP1 && p.id !== drawToDelete.bindP2); 
+        }
+
+        // 4. 単体独立ポイント（Plot）の消去と連動処理
+        plots = plots.filter(p => {
+            const shouldDelete = (Math.hypot(sx - toScreen(p.mx, p.my).x, sy - toScreen(p.mx, p.my).y) < 20);
+            if (shouldDelete) { 
+                drawings = drawings.filter(d => d.bindP1 !== p.id && d.bindP2 !== p.id && !(d.type === 'circle' && d.mX1 === p.mx && d.mY1 === p.my)); 
+                activeMeasures = activeMeasures.filter(m => m.p1 !== p.id && m.p2 !== p.id && m.p3 !== p.id); 
+            }
+            return !shouldDelete;
         });
     }
 
-    function distToSeg(p, v, w) {
-        const l2 = Math.pow(v.x-w.x, 2)+Math.pow(v.y-w.y,2); if(l2===0) return Math.hypot(p.x-v.x, p.y-v.y);
-        let t = Math.max(0, Math.min(1, ((p.x-v.x)*(w.x-v.x)+(p.y-v.y)*(w.y-v.y))/l2)); return Math.hypot(p.x-(v.x+t*(w.x-v.x)), p.y-(v.y+t*(w.y-v.y)));
+    function processLassoSelection() { if (lassoPoints.length < 3) return; selectedPlotIds = []; plots.forEach(p => { if (isPointInLasso(toScreen(p.mx, p.my))) selectedPlotIds.push(p.id); }); }
+    function isPointInLasso(sPt) {
+        let inside = false;
+        for (let i = 0, j = lassoPoints.length - 1; i < lassoPoints.length; j = i++) {
+            if (((lassoPoints[i].y > sPt.y) !== (lassoPoints[j].y > sPt.y)) && (sPt.x < (lassoPoints[j].x - lassoPoints[i].x) * (sPt.y - lassoPoints[i].y) / (lassoPoints[j].y - lassoPoints[i].y) + lassoPoints[i].x)) inside = !inside;
+        }
+        return inside;
     }
 
-    function changeColor(c, el) { currentColor = c; el.parentElement.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
-    function changeThickness(t) { currentThickness = t; }
-    function changePenType(t) { currentPenType = t; }
-    function changeLineType(t) { currentLineType = t; }
-    
-    function changeMode(m, el) {
-        currentMode = m; isDrawing = false; connectStartPlot = null; measureAngPoints = []; selectedBaseLineId = null;
-        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active')); if(el) el.classList.add('active');
-        document.getElementById('measure-instructions').innerText = langDict[currentLang]["inst_" + m] || m;
-    }
-
-    function cycleGrid() {
-        gridType = (gridType + 1) % 4; const btn = document.getElementById('btn-grid-cycle');
-        const labelsJa = ["🏁 背景:なし", "🏁 背景:通常方眼", "🏁 背景:英語4線", "🏁 背景:十字マス"];
-        const labelsEn = ["🏁 Grid: None", "🏁 Grid: Normal", "🏁 Grid: 4-Lines", "🏁 Grid: Square"];
-        btn.querySelector('span').innerText = currentLang === 'ja' ? labelsJa[gridType] : labelsEn[gridType];
-    }
-
-    function cycleToolbarSize() {
-        const tb = document.getElementById('myToolbar'); toolbarSizeState = (toolbarSizeState + 1) % 3; tb.classList.remove('tb-small', 'tb-large');
-        if (toolbarSizeState === 0) tb.classList.add('tb-small'); if (toolbarSizeState === 2) tb.classList.add('tb-large');
-    }
-
-    function toggleLayout() {
-        const tb = document.getElementById('myToolbar'); layoutState = (layoutState + 1) % 3;
-        tb.classList.remove('tb-vertical'); tb.style.top='10px'; tb.style.left='10px'; tb.style.right='auto';
-        if(layoutState===1) tb.classList.add('tb-vertical');
-        else if(layoutState===2) { tb.classList.add('tb-vertical'); tb.style.right='10px'; tb.style.left='auto'; }
-    }
-
-    function toggleLanguage() { currentLang = currentLang === 'ja' ? 'en' : 'ja'; applyLanguage(); }
-    
-    function applyLanguage() {
-        const dict = langDict[currentLang];
-        Object.keys(dict).forEach(key => { const el = document.getElementById(key); if (el) el.innerHTML = dict[key]; });
-        rebuildSelectOptions(); document.getElementById('measure-instructions').innerText = dict["inst_" + currentMode] || currentMode;
-        
-        const btn = document.getElementById('btn-grid-cycle');
-        const labelsJa = ["🏁 背景:なし", "🏁 背景:通常方眼", "🏁 背景:英語4線", "🏁 背景:十字マス"];
-        const labelsEn = ["🏁 Grid: None", "🏁 Grid: Normal", "🏁 Grid: 4-Lines", "🏁 Grid: Square"];
-        btn.querySelector('span').innerText = currentLang === 'ja' ? labelsJa[gridType] : labelsEn[gridType];
+    function distToSegment(p, v, w) {
+        let l2 = Math.hypot(v.x - w.x, v.y - w.y)**2; if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = Math.max(0, Math.min(1, ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2));
+        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
     function saveData() {
-        const d = { drawings, plots, groups, activeMeasures, labelIndex, gridType };
-        const b = new Blob([JSON.stringify(d)], {type:"application/json"});
-        const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "lesson_premium_geometry.json"; a.click();
+        const blob = new Blob([JSON.stringify({ drawings, plots, labelIndex, gridType, currentLang, activeMeasures }, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Blackboard_Data_${Date.now()}.json`; a.click();
     }
-    
     function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
-    
-    function loadData(i) {
-        if(i.files[0]){
-            const r = new FileReader();
-            r.onload=function(e){
-                const parsed = JSON.parse(e.target.result);
-                drawings=parsed.drawings||[]; plots=parsed.plots||[]; groups=parsed.groups||[]; activeMeasures=parsed.activeMeasures||[]; labelIndex=parsed.labelIndex||0;
-                if(parsed.gridType!==undefined){gridType=parsed.gridType; applyLanguage();}
-            };
-            r.readAsText(i.files[0]);
-        }
+    function loadData(input) {
+        if (!input.files || input.files.length === 0) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result); saveHistory();
+                drawings = data.drawings || []; plots = data.plots || []; labelIndex = data.labelIndex || 0; gridType = data.gridType || 0; activeMeasures = data.activeMeasures || [];
+                cycleGridTextOnly();
+            } catch(err) { alert("JSON読み込みに失敗しました。"); }
+        }; reader.readAsText(input.files[0]);
     }
 
-    function clearBlackboard() { if(confirm(langDict[currentLang].confirm_clear)) { drawings=[]; plots=[]; groups=[]; activeMeasures=[]; labelIndex=0; selectedBaseLineId = null; } }
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 
-    (function setupToolbarDraggable() {
-        const handle = document.getElementById('myToolbarHandle'); const toolbar = document.getElementById('myToolbar');
-        let isDraggingBar = false; let startX, startY, startLeft, startTop;
-
-        function barStart(clientX, clientY) { isDraggingBar = true; startX = clientX; startY = clientY; const rect = toolbar.getBoundingClientRect(); startLeft = rect.left; startTop = rect.top; toolbar.style.right = 'auto'; }
-        function barMove(clientX, clientY) { if (!isDraggingBar) return; const dx = clientX - startX; const dy = clientY - startY; toolbar.style.left = (startLeft + dx) + 'px'; toolbar.style.top = (startTop + dy) + 'px'; }
-        function barStop() { isDraggingBar = false; }
-
+    (function init() {
+        window.addEventListener('resize', resizeCanvas);
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', draw);
+        window.addEventListener('pointerup', stopDrawing);
+        
+        const toolbar = document.getElementById('myToolbar'); const handle = document.getElementById('myToolbarHandle');
+        let isDraggingBar = false; let sBarX=0, sBarY=0, sLeft=15, sTop=15;
+        function barStart(cx, cy) { isDraggingBar = true; sBarX = cx; sBarY = cy; sLeft = toolbar.offsetLeft; sTop = toolbar.offsetTop; }
+        function barMove(cx, cy) {
+            if (!isDraggingBar) return;
+            let tl = sLeft + (cx - sBarX); let tt = sTop + (cy - sBarY);
+            if (tt < 30) tt = 0; if (tl < 30) tl = 0;
+            if (window.innerWidth - (tl + toolbar.offsetWidth) < 30) tl = window.innerWidth - toolbar.offsetWidth;
+            if (window.innerHeight - (tt + toolbar.offsetHeight) < 30) tt = window.innerHeight - toolbar.offsetHeight;
+            toolbar.style.left = tl + 'px'; toolbar.style.top = tt + 'px';
+        }
         handle.addEventListener('mousedown', (e) => { barStart(e.clientX, e.clientY); e.stopPropagation(); });
-        window.addEventListener('mousemove', (e) => { barMove(e.clientX, e.clientY); }); window.addEventListener('mouseup', barStop);
-        handle.addEventListener('touchstart', (e) => { if(e.touches.length>0) { barStart(e.touches[0].clientX, e.touches[0].clientY); e.stopPropagation(); } }, {passive:false});
-        window.addEventListener('touchmove', (e) => { if(isDraggingBar && e.touches.length>0) { barMove(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
-        window.addEventListener('touchend', barStop);
+        window.addEventListener('mousemove', (e) => barMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', () => isDraggingBar = false);
+        handle.addEventListener('touchstart', (e) => { if(e.touches.length>0) barStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+        window.addEventListener('touchmove', (e) => { if(isDraggingBar && e.touches.length>0) barMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+
+        window.addEventListener('wheel', (e) => {
+            scale = Math.max(0.4, Math.min(5.0, scale * (e.deltaY < 0 ? 1.05 : 0.95)));
+        }, { passive: true });
+
+        resizeCanvas(); updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
+        document.querySelectorAll('.advanced-feature').forEach(el => el.style.display = 'none');
+        parseAndSyncFractionDisplay(document.getElementById('kidsFormulaInput').value);
+        
+        tick();
     })();
-
-    window.addEventListener('resize', resizeCanvas);
-    canvas.addEventListener('pointerdown', startDrawing); canvas.addEventListener('pointermove', draw); window.addEventListener('pointerup', stopDrawing); canvas.addEventListener('pointercancel', stopDrawing);
-    document.addEventListener('gesturestart', function (e) { e.preventDefault(); }); document.addEventListener('touchmove', function (e) { if(e.scale !== 1) { e.preventDefault(); } }, { passive: false });
-
-    resizeCanvas(); rebuildSelectOptions(); applyLanguage();
-    setInterval(runRedrawCore, 16);
 </script>
 </body>
 </html>
