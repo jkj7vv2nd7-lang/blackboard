@@ -21,6 +21,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.85);
             max-width: calc(100vw - 30px); max-height: 92vh; overflow-y: auto;
             transition: left 0.15s cubic-bezier(0.1, 0.8, 0.2, 1), top 0.15s cubic-bezier(0.1, 0.8, 0.2, 1);
+            touch-action: pan-y !important;
         }
         .toolbar.tb-vertical { flex-direction: column; flex-wrap: nowrap; width: 165px; max-height: 95vh; padding: 12px 6px; }
         .toolbar.tb-small { padding: 4px 6px; gap: 4px; }
@@ -106,7 +107,7 @@
             color: #00f5d4; font-size: 20px; cursor: pointer; z-index: 999; align-items: center; justify-content: center;
         }
         
-        /* 情報メーター：右下に固定 */
+        /* 情報メーター */
         .info-panel {
             position: absolute; bottom: 20px; right: 20px; z-index: 90;
             background-color: rgba(5, 15, 10, 0.92); padding: 12px; border-radius: 12px;
@@ -116,7 +117,7 @@
         }
         .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffff00; font-family: monospace; font-size: 13px; font-weight: bold; }
 
-        /* 関数パレット：左下に配置し情報メーターと被らないように独立 */
+        /* 関数パレット */
         .coord-sub-palette {
             display: none; position: absolute; bottom: 20px; left: 20px; z-index: 95;
             background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
@@ -163,9 +164,11 @@
         .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; }
         
         .btn-flip-angle {
-            background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 1px 5px; 
-            font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; vertical-align: middle;
+            background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 2px 6px; 
+            font-size: 11px; font-weight: bold; cursor: pointer; margin-left: 8px; vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
+        .btn-flip-angle:active { background: #ff1a1a; color: white; }
     </style>
 </head>
 <body>
@@ -209,7 +212,7 @@
             <button class="btn btn-draw" id="btn-line" onclick="changeMode('line', this)"><span id="txt-line">➖<br>直線</span></button>
             <button class="btn btn-draw" id="btn-ray" onclick="changeMode('ray', this)"><span id="txt-ray">🪶<br>半直線</span></button>
             <button class="btn btn-draw" id="btn-vector" onclick="changeMode('vector', this)"><span id="txt-vector">➔<br>ベクトル</span></button>
-            <button class="btn btn-draw" id="btn-compass" onclick="changeMode('compass', this)"><span id="txt-compass">🧭<br>コンパス</span></button>
+            <button class="btn btn-draw" id="btn-compass" onclick="changeMode('compass', this)"><span id="txt-compass">🎯◯<br>コンパス</span></button>
             <button class="btn btn-draw" id="btn-arc" onclick="changeMode('arc', this)"><span id="txt-arc">🌐<br>円弧</span></button>
             <button class="btn btn-draw" id="btn-parallel" onclick="changeMode('parallel', this)"><span id="txt-parallel">⇄<br>平行線</span></button>
             <button class="btn btn-draw" id="btn-perpend" onclick="changeMode('perpend', this)"><span id="txt-perpend">┼<br>垂直線</span></button>
@@ -254,7 +257,7 @@
     </div>
     
     <div class="tool-group" id="group-admin">
-        <span class="group-label" id="lbl-history">管理</span>
+        <span class="group-label" id="lbl-admin">管理</span>
         <div class="group-content">
             <button class="btn btn-file" onclick="cycleToolbarSize()"><span id="txt-uisize">🔍<br>UIサイズ</span></button>
             <button class="btn btn-file" onclick="toggleLayout()"><span id="txt-layout">🔄<br>配置切替</span></button>
@@ -377,8 +380,47 @@
     let startX = 0, startY = 0; let currentX = 0, currentY = 0; 
     let selectedBaseLine = null;
     let measureClickSequence = [];
+    let hoveredPlotId = null;
+    let hoveredLineId = null;
+    let measureLineSequence = [];
 
     let undoStack = []; let playbookRedo = [];
+
+    let cachedJsFormula = "0.2*x*x";
+
+    const kidsFormulaInput = document.getElementById('kidsFormulaInput');
+    const syncFracBlock = document.getElementById('syncFracBlock');
+    const syncViewNormalText = document.getElementById('syncViewNormalText');
+    const syncViewXText = document.getElementById('syncViewXText');
+    const lblFractionXType = document.getElementById('lbl-fraction-x-type');
+    const syncViewNum = document.getElementById('syncViewNum');
+    const syncViewDen = document.getElementById('syncViewDen');
+    const fracNumerator = document.getElementById('fracNumerator');
+    const fracDenominator = document.getElementById('fracDenominator');
+    const measureOutput = document.getElementById('measure-output');
+    const measureInstructions = document.getElementById('measure-instructions');
+    const lineStyleSelect = document.getElementById('lineStyleSelect');
+    const penTypeSelect = document.getElementById('penTypeSelect');
+    const thicknessSelect = document.getElementById('thicknessSelect');
+    const btnAdvancedToggle = document.getElementById('btnAdvancedToggle');
+    const coordSubPalette = document.getElementById('coordSubPalette');
+
+    // 反転ボタンが確実に動作するためのイベントデリゲーションを設定
+    measureOutput.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-flip-angle')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+            toggleAngleFlip(idx);
+        }
+    });
+
+    function windowResize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', windowResize);
+    windowResize();
 
     function tick() {
         requestAnimationFrame(tick);
@@ -392,7 +434,7 @@
             "lbl-history": "履歴", "lbl-admin": "管理", "lbl-util": "共通", "lbl-infotitle": "情報メーター", 
             "lbl-sub-palette-title": "📊 しきをつくろう！", "lbl-sub-step": "目盛り幅:", "lbl-sub-show-num": "すうじ", "lbl-sub-expr-head": "📈 グラフのしき (y = ...)",
             "txt-free": "✏️<br>手書き", "txt-plot": "📍<br>点を打つ", "txt-segment": "📏<br>線分", "txt-line": "➖<br>直線",
-            "txt-ray": "🪶<br>半直線", "txt-vector": "➔<br>ベクトル", "txt-compass": "🧭<br>コンパス", "txt-arc": "🌐<br>円弧",
+            "txt-ray": "🪶<br>半直線", "txt-vector": "➔<br>ベクトル", "txt-compass": "🎯◯<br>コンパス", "txt-arc": "🌐<br>円弧",
             "txt-parallel": "⇄<br>平行線", "txt-perpend": "┼<br>垂直線", "txt-fixed": "🔒<br>点を固定", "txt-bound": "⛓️<br>動きの通り道",
             "txt-p_tri": "🔺<br>一般の三角形", "txt-p_isotri": "📐<br>二等辺三角形", "txt-p_eqtri": "🛆<br>正三角形", "txt-p_rtri": "∟⊿<br>直角三角形", "txt-p_squ": "⬜<br>正方形",
             "txt-p_rhom": "💎<br>ひし形", "txt-p_trap": "⏢<br>台形", "txt-p_para": "▱<br>平行四辺形",
@@ -416,6 +458,7 @@
             inst_eraser: "【消しゴム】なぞった線・図形を消去します。円・円弧はこすった部分が分解・削除されます。",
             inst_fixed: "【点を固定】タップした頂点の位置を赤くロックし、動かなくします。",
             inst_bound: "【動きの通り道】点を選び円をタップすると、その円周上のみ動くようになります。",
+            inst_measure_ang: "【角度測定】3つの点、または交わる2本の線(辺)をタッチして角度をはかります。",
             confirm_clear: "黒板のすべての内容（幾何データ、測定、手書き）を完全に消去しますか？"
         },
         en: {
@@ -424,9 +467,10 @@
             "lbl-history": "History", "lbl-admin": "File", "lbl-util": "Util", "lbl-infotitle": "Data Meter",
             "lbl-sub-palette-title": "📊 Build Formula!", "lbl-sub-step": "Step:", "lbl-sub-show-num": "Labels", "lbl-sub-expr-head": "📈 Graph Formula (y = ...)",
             "txt-free": "✏️<br>Freehand", "txt-plot": "📍<br>Point", "txt-segment": "📏<br>Segment", "txt-line": "➖<br>Line",
-            "txt-ray": "🪶<br>Ray", "txt-vector": "➔<br>Vector", "txt-compass": "🧭<br>Compass", "txt-arc": "🌐<br>Arc",
+            "txt-ray": "🪶<br>Ray", "txt-vector": "➔<br>Vector", "txt-compass": "🎯◯<br>Compass", "txt-arc": "🌐<br>Arc",
             "txt-parallel": "⇄<br>Parallel", "txt-perpend": "┼<br>Perpend", "txt-fixed": "🔒<br>Lock Pt", "txt-bound": "⛓️<br>Orbit Path",
-            "txt-p_tri": "🔺<br>Triangle", "txt-p_isotri": "📐<br>Isosceles", "txt-p_equ-triangle": "🛆<br>Equilateral", "txt-p_rtri": "∟⊿<br>Right Tri", "txt-p_squ": "⬜<br>Square",
+            "txt-p_tri": "🔺<br>Triangle", "txt-p_isotri": "📐<br>Isosceles", "txt-p_eqtri": "🛆<br>Equilateral", 
+            "txt-p_rtri": "∟⊿<br>Right Tri", "txt-p_squ": "⬜<br>Square",
             "txt-p_rhom": "💎<br>Rhombus", "txt-p_trap": "⏢<br>Trapezoid", "txt-p_para": "▱<br>Parallelogram",
             "txt-move": "🖐️<br>Morph/Move", "txt-m_len": "📏<br>Length", "txt-m_ang": "📐<br>Angle",
             "txt-lasso": "🎯<br>Lasso", "txt-makegroup": "🔒<br>Group", "txt-ungroup": "🔓<br>Ungroup",
@@ -448,6 +492,7 @@
             inst_eraser: "Eraser: Scrub components out. Circle / linear arcs slice back or clear dynamically.",
             inst_fixed: "Lock Point: Freeze chosen vertex anchor into non-movable coordinate state.",
             inst_bound: "Orbit Path: Bind dynamic points to track limited purely inside circle paths.",
+            inst_measure_ang: "Angle: Select 3 points or 2 connecting lines to measure angles.",
             confirm_clear: "Are you sure you want to completely wipe the blackboard content?"
         }
     };
@@ -473,7 +518,7 @@
         const tb = document.getElementById('myToolbar');
         const btn = document.getElementById('toolbarExpandBtn');
         tb.style.display = 'none'; btn.style.display = 'flex';
-        btn.style.top = 'auto'; btn.style.left = 'auto'; btn.style.right = 'auto'; btn.style.bottom = 'auto';
+        btn.style.top = btn.style.left = btn.style.right = btn.style.bottom = 'auto';
         if (corner === 'tl') { btn.style.top = '12px'; btn.style.left = '12px'; }
         else if (corner === 'tr') { btn.style.top = '12px'; btn.style.right = '12px'; }
         else if (corner === 'bl') { btn.style.bottom = '12px'; btn.style.left = '12px'; }
@@ -486,65 +531,61 @@
 
     function toggleAdvancedMode() {
         isAdvancedMode = !isAdvancedMode;
-        const toggleBtn = document.getElementById('btnAdvancedToggle');
         const advElements = document.querySelectorAll('.advanced-feature');
         if (isAdvancedMode) {
-            toggleBtn.innerHTML = currentLang === 'ja' ? '💎 高度モード' : '💎 Advanced';
-            toggleBtn.style.backgroundColor = '#117a65';
+            btnAdvancedToggle.innerHTML = currentLang === 'ja' ? '💎 高度モード' : '💎 Advanced';
+            btnAdvancedToggle.style.backgroundColor = '#117a65';
             advElements.forEach(el => { el.style.display = (el.tagName === 'BUTTON') ? 'flex' : 'block'; });
         } else {
-            toggleBtn.innerHTML = currentLang === 'ja' ? '💎 標準モード' : '💎 Standard';
-            toggleBtn.style.backgroundColor = '#4a235a';
+            btnAdvancedToggle.innerHTML = currentLang === 'ja' ? '💎 標準モード' : '💎 Standard';
+            btnAdvancedToggle.style.backgroundColor = '#4a235a';
             advElements.forEach(el => el.style.display = 'none');
         }
     }
 
     function onNativeFormulaInput() {
-        let val = document.getElementById('kidsFormulaInput').value;
+        let val = kidsFormulaInput.value;
+        cachedJsFormula = translateKidsToJs(val);
         parseAndSyncFractionDisplay(val);
     }
     function onFractionFieldInput() {
-        const num = document.getElementById('fracNumerator').value;
-        const den = document.getElementById('fracDenominator').value;
-        const input = document.getElementById('kidsFormulaInput');
-        let currentExpr = input.value;
+        const num = fracNumerator.value;
+        const den = fracDenominator.value;
+        let currentExpr = kidsFormulaInput.value;
         let xPart = " * x * x";
         if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) {
             xPart = " * x";
         } else if (!currentExpr.includes('x')) {
             xPart = "";
         }
-        input.value = (num || den) ? `(${num || '?'}/${den || '?'})${xPart}` : `0.2${xPart}`;
-        parseAndSyncFractionDisplay(input.value);
+        kidsFormulaInput.value = (num || den) ? `(${num || '?'}/${den || '?'})${xPart}` : `0.2${xPart}`;
+        cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+        parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
     function parseAndSyncFractionDisplay(str) {
-        const block = document.getElementById('syncFracBlock');
-        const normText = document.getElementById('syncViewNormalText');
-        const xText = document.getElementById('syncViewXText');
-        const xLbl = document.getElementById('lbl-fraction-x-type');
         const match = str.match(/\(([^)]+)\/([^)]+)\)/);
         
         let suffix = "";
         if (str.includes('x*x') || str.includes('x²')) suffix = "x²";
         else if (str.includes('x')) suffix = "x";
         
-        xText.innerText = suffix;
-        xLbl.innerText = suffix ? suffix : "x²";
+        syncViewXText.innerText = suffix;
+        lblFractionXType.innerText = suffix ? suffix : "x²";
 
         if (match) {
-            block.style.display = 'inline-flex'; normText.style.display = 'none';
-            document.getElementById('syncViewNum').innerText = match[1];
-            document.getElementById('syncViewDen').innerText = match[2];
+            syncFracBlock.style.display = 'inline-flex'; syncViewNormalText.style.display = 'none';
+            syncViewNum.innerText = match[1];
+            syncViewDen.innerText = match[2];
             if (document.activeElement.id !== 'fracNumerator' && document.activeElement.id !== 'fracDenominator') {
-                document.getElementById('fracNumerator').value = match[1] === '?' ? '' : match[1];
-                document.getElementById('fracDenominator').value = match[2] === '?' ? '' : match[2];
+                fracNumerator.value = match[1] === '?' ? '' : match[1];
+                fracDenominator.value = match[2] === '?' ? '' : match[2];
             }
         } else {
-            block.style.display = 'none'; normText.style.display = 'inline';
+            syncFracBlock.style.display = 'none'; syncViewNormalText.style.display = 'inline';
             let parsedVal = str.split('*')[0] || str;
-            normText.innerText = parsedVal.replace(/[()]/g, '');
+            syncViewNormalText.innerText = parsedVal.replace(/[()]/g, '');
         }
-        xText.style.display = suffix ? 'inline' : 'none';
+        syncViewXText.style.display = suffix ? 'inline' : 'none';
     }
 
     function renderKidsKeyboard() {
@@ -560,26 +601,26 @@
             if (item.clear) btn.classList.add('btn-pad-clear');
             btn.innerHTML = (item.label === 'x') ? '<span class="math-x-font">x</span>' : item.label;
             btn.onclick = () => {
-                const input = document.getElementById('kidsFormulaInput');
-                if (item.k === 'CLEAR') { input.value = ''; document.getElementById('fracNumerator').value = ''; document.getElementById('fracDenominator').value = ''; }
-                else if (item.k === 'BACK') { input.value = input.value.substring(0, input.value.length - 1); }
-                else if (item.k === '²') { input.value += '*x'; }
-                else { input.value += item.k; }
-                parseAndSyncFractionDisplay(input.value);
+                if (item.k === 'CLEAR') { kidsFormulaInput.value = ''; fracNumerator.value = ''; fracDenominator.value = ''; }
+                else if (item.k === 'BACK') { kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); }
+                else if (item.k === '²') { kidsFormulaInput.value += '*x'; }
+                else { kidsFormulaInput.value += item.k; }
+                cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+                parseAndSyncFractionDisplay(kidsFormulaInput.value);
             };
             container.appendChild(btn);
         });
     }
 
     function applyFractionToFormula() {
-        const input = document.getElementById('kidsFormulaInput');
-        let currentExpr = input.value;
+        let currentExpr = kidsFormulaInput.value;
         let suffix = " * x * x";
         if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) suffix = " * x";
         if (!currentExpr.includes('x')) suffix = "";
         
-        input.value = `(${document.getElementById('fracNumerator').value || '?'}/${document.getElementById('fracDenominator').value || '?'})${suffix}`;
-        parseAndSyncFractionDisplay(input.value);
+        kidsFormulaInput.value = `(${fracNumerator.value || '?'}/${fracDenominator.value || '?'})${suffix}`;
+        cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+        parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
     
     function translateKidsToJs(rawStr) { 
@@ -590,12 +631,12 @@
 
     function updateDropdowns() {
         const sets = selectOptions[currentLang];
-        const pts = document.getElementById('penTypeSelect'); const oldPt = pts.value; pts.innerHTML = '';
-        sets.penType.forEach(o => pts.add(new Option(o.text, o.value))); if([...pts.options].some(o => o.value === oldPt)) pts.value = oldPt; else currentPenType = pts.value;
-        const lss = document.getElementById('lineStyleSelect'); const oldLs = lss.value; lss.innerHTML = '';
-        sets.lineStyle.forEach(o => lss.add(new Option(o.text, o.value))); if([...lss.options].some(o => o.value === oldLs)) lss.value = oldLs;
-        const ths = document.getElementById('thicknessSelect'); const oldTh = ths.value; ths.innerHTML = '';
-        sets.thickness.forEach(o => ths.add(new Option(o.text, o.value))); if([...ths.options].some(o => o.value === oldTh)) ths.value = oldTh;
+        const oldPt = penTypeSelect.value; penTypeSelect.innerHTML = '';
+        sets.penType.forEach(o => penTypeSelect.add(new Option(o.text, o.value))); if([...penTypeSelect.options].some(o => o.value === oldPt)) penTypeSelect.value = oldPt; else currentPenType = penTypeSelect.value;
+        const oldLs = lineStyleSelect.value; lineStyleSelect.innerHTML = '';
+        sets.lineStyle.forEach(o => lineStyleSelect.add(new Option(o.text, o.value))); if([...lineStyleSelect.options].some(o => o.value === oldLs)) lineStyleSelect.value = oldLs;
+        const oldTh = thicknessSelect.value; thicknessSelect.innerHTML = '';
+        sets.thickness.forEach(o => thicknessSelect.add(new Option(o.text, o.value))); if([...thicknessSelect.options].some(o => o.value === oldTh)) thicknessSelect.value = oldTh;
     }
 
     function toggleLanguage() {
@@ -607,18 +648,18 @@
                 else el.innerHTML = langDict[currentLang][id];
             }
         }
-        document.getElementById('btnAdvancedToggle').innerHTML = isAdvancedMode ? (currentLang==='ja'?'💎 高度モード':'💎 Advanced') : (currentLang==='ja'?'💎 標準モード':'💎 Standard');
+        btnAdvancedToggle.innerHTML = isAdvancedMode ? (currentLang==='ja'?'💎 高度モード':'💎 Advanced') : (currentLang==='ja'?'💎 標準モード':'💎 Standard');
         updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
         cycleGridTextOnly();
     }
 
-    function updateInfoMeterInstructions() { document.getElementById('measure-instructions').innerText = langDict[currentLang]['inst_' + currentMode] || ""; }
+    function updateInfoMeterInstructions() { measureInstructions.innerText = langDict[currentLang]['inst_' + currentMode] || ""; }
 
     function changeMode(mode, btnEl) {
         currentMode = mode;
         document.querySelectorAll('.btn-draw, .btn-operate, .btn-eraser, .btn-theorem, .btn-grouping, .btn-preset').forEach(b => b.classList.remove('active'));
         if (btnEl) btnEl.classList.add('active'); updateInfoMeterInstructions();
-        selectedBaseLine = null; measureClickSequence = []; lassoPoints = [];
+        selectedBaseLine = null; measureClickSequence = []; measureLineSequence = []; lassoPoints = [];
     }
 
     function changeColor(hex, btnEl) { currentColor = hex; document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); if (btnEl) btnEl.classList.add('active'); }
@@ -632,11 +673,11 @@
     }
     function cycleGridTextOnly() {
         const labelsGrid = {
-            ja: ["🏁 背景: なし", "🏁 背景: 通常方眼", "🏁 背景: 英語4線", "🏁 背景: 国語十字マス", "🏁 背景: 座標平面軸"],
+            ja: ["🏁 背景: なし", "🏁 背景: 通常方眼", "🏁 背景: 英語4線", "🏁 背景: 十字マス", "🏁 背景: 座標平面軸"],
             en: ["🏁 BG: Clean", "🏁 BG: Mesh Grid", "🏁 BG: 4-Line", "🏁 BG: Kanji Cross", "🏁 BG: Coordinate Axis"]
         };
         document.getElementById('btn-grid-cycle').innerHTML = labelsGrid[currentLang][gridType];
-        document.getElementById('coordSubPalette').style.display = (gridType === 4) ? 'block' : 'none';
+        coordSubPalette.style.display = (gridType === 4) ? 'block' : 'none';
     }
 
     function cycleToolbarSize() {
@@ -649,21 +690,38 @@
     function toScreen(mx, my) { return { x: canvas.width / 2 + mx * baseGridSize * scale + offsetX, y: canvas.height / 2 - my * baseGridSize * scale + offsetY }; }
     function toMath(sx, sy) { return { x: ((sx - canvas.width / 2) - offsetX) / (baseGridSize * scale), y: ((canvas.height / 2 - sy) + offsetY) / (baseGridSize * scale) }; }
 
+    function cloneState(arr) {
+        return arr.map(item => {
+            const copy = { ...item };
+            if (item.pts) copy.pts = item.pts.map(p => ({ ...p }));
+            if (item.plotIds) copy.plotIds = [...item.plotIds];
+            if (item.drawingIds) copy.drawingIds = [...item.drawingIds];
+            return copy;
+        });
+    }
+
     function saveHistory() {
-        undoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
-        playbookRedo = []; if (undoStack.length > 40) undoStack.shift();
+        undoStack.push({ 
+            drawings: cloneState(drawings), 
+            plots: cloneState(plots), 
+            activeMeasures: cloneState(activeMeasures), 
+            groups: cloneState(groups), 
+            labelIndex: labelIndex 
+        });
+        playbookRedo = []; 
+        if (undoStack.length > 40) undoStack.shift();
     }
     function handleUndo() {
         if (undoStack.length === 0) return;
-        playbookRedo.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
+        playbookRedo.push({ drawings: cloneState(drawings), plots: cloneState(plots), activeMeasures: cloneState(activeMeasures), groups: cloneState(groups), labelIndex: labelIndex });
         applyState(undoStack.pop());
     }
     function handleRedo() {
         if (playbookRedo.length === 0) return;
-        undoStack.push({ drawings: JSON.parse(JSON.stringify(drawings)), plots: JSON.parse(JSON.stringify(plots)), activeMeasures: JSON.parse(JSON.stringify(activeMeasures)), groups: JSON.parse(JSON.stringify(groups)), labelIndex: labelIndex });
+        undoStack.push({ drawings: cloneState(drawings), plots: cloneState(plots), activeMeasures: cloneState(activeMeasures), groups: cloneState(groups), labelIndex: labelIndex });
         applyState(playbookRedo.pop());
     }
-    function applyState(s) { drawings = s.drawings || []; plots = s.plots || []; activeMeasures = s.activeMeasures || []; groups = s.groups || []; labelIndex = s.labelIndex || 0; selectedPlotIds = []; selectedDrawingIds = []; }
+    function applyState(s) { drawings = s.drawings || []; plots = s.plots || []; activeMeasures = s.activeMeasures || []; groups = s.groups || []; labelIndex = s.labelIndex || 0; selectedPlotIds = []; selectedDrawingIds = []; measureClickSequence = []; measureLineSequence = []; }
     function generateUniqueId() { return 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
     function getNextLabel() { const L = labels[labelIndex % 26] + (labelIndex >= 26 ? Math.floor(labelIndex/26) : ""); labelIndex++; return L; }
 
@@ -713,31 +771,47 @@
         drawBackgroundGrids();
         if (gridType === 4) drawMathFunctionGraph();
         
-        drawings.forEach(d => { 
-            if (d.type !== 'freehand') {
+        for (let i = 0; i < drawings.length; i++) {
+            const d = drawings[i];
+            if (d.type === 'freehand') {
+                drawFreehandPath(d);
+            } else {
                 if (selectedBaseLine && selectedBaseLine.id === d.id) {
                     ctx.save();
-                    let flashColor = Math.floor(Date.now() / 200) % 2 === 0 ? 'rgba(255, 140, 0, 1)' : 'rgba(255, 69, 0, 0.4)';
-                    let originalColor = d.color;
-                    d.color = flashColor;
+                    d.color = Math.floor(Date.now() / 200) % 2 === 0 ? 'rgba(255, 140, 0, 1)' : 'rgba(255, 69, 0, 0.4)';
                     drawGeomObject(d);
-                    d.color = originalColor;
+                    ctx.restore();
+                } else if (currentMode === 'measure-ang' && (hoveredLineId === d.id || measureLineSequence.includes(d.id))) {
+                    ctx.save();
+                    let oldColor = d.color;
+                    d.color = '#ff9f43';
+                    drawGeomObject(d);
+                    d.color = oldColor;
                     ctx.restore();
                 } else {
                     drawGeomObject(d); 
                 }
-            } 
-        });
+            }
+        }
         
-        drawings.forEach(d => { if (d.type === 'freehand') drawFreehandPath(d); });
         drawGroupsBoundingBox();
-        plots.forEach(p => {
-            const s = toScreen(p.mx, p.my); ctx.beginPath(); ctx.arc(s.x, s.y, p.isFixed ? 10 : 8, 0, Math.PI*2);
+
+        for (let i = 0; i < plots.length; i++) {
+            const p = plots[i];
+            const s = toScreen(p.mx, p.my); ctx.beginPath(); 
+            
+            let radius = p.isFixed ? 10 : 8;
+            let isHoveredOrSelected = (currentMode === 'measure-ang' && (hoveredPlotId === p.id || measureClickSequence.includes(p.id)));
+            if (isHoveredOrSelected) radius += 4;
+            
+            ctx.arc(s.x, s.y, radius, 0, Math.PI*2);
             if (selectedPlotIds.includes(p.id)) { ctx.save(); ctx.shadowBlur = 14; ctx.shadowColor = '#00f5d4'; ctx.fillStyle = '#00f5d4'; ctx.fill(); ctx.restore(); } 
+            else if (isHoveredOrSelected) { ctx.save(); ctx.shadowBlur = 16; ctx.shadowColor = '#00f5d4'; ctx.fillStyle = '#00f5d4'; ctx.fill(); ctx.restore(); }
             else { ctx.fillStyle = p.isFixed ? '#ff3333' : p.color || '#fff'; ctx.fill(); }
             ctx.strokeStyle = '#0d1f16'; ctx.lineWidth = 2; ctx.stroke();
             ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(p.id, s.x + 12, s.y - 4);
-        });
+        }
+
         processAndDrawMeasurements();
         drawLivePreviewAndTools();
     }
@@ -755,10 +829,12 @@
             for (let y = cy % step; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
         }
         if (gridType === 2) {
-            for (let y = cy % (step*2); y < h; y += step*2) {
+            const stepDouble = step * 2;
+            const subStep = step * 0.3;
+            for (let y = cy % stepDouble; y < h; y += stepDouble) {
                 for(let i=0; i<4; i++) {
                     ctx.strokeStyle = (i===2) ? 'rgba(255, 77, 77, 0.35)' : 'rgba(255, 255, 255, 0.12)';
-                    ctx.beginPath(); ctx.moveTo(0, y + i*(step*0.3)); ctx.lineTo(w, y + i*(step*0.3)); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, y + i*subStep); ctx.lineTo(w, y + i*subStep); ctx.stroke();
                 }
             }
         }
@@ -768,13 +844,14 @@
             for (let x = cx % boxSize; x < w; x += boxSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
             for (let y = cy % boxSize; y < h; y += boxSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
             
-            ctx.strokeStyle = 'rgba(60, 179, 113, 0.3)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); 
-            for (let x = (cx % boxSize) + boxSize/2; x < w; x += boxSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-            for (let y = (cy % boxSize) + boxSize/2; y < h; y += boxSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+            ctx.strokeStyle = 'rgba(46, 139, 87, 0.25)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+            let halfBox = boxSize / 2;
+            for (let x = (cx % boxSize) - halfBox; x < w; x += boxSize) { if (x > 0) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); } }
+            for (let y = (cy % boxSize) - halfBox; y < h; y += boxSize) { if (y > 0) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); } }
         }
         if (gridType === 4) {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)'; ctx.lineWidth = 2;
-            ctx.beginPath(); moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
             if (showCoordLabels) {
                 ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '11px monospace';
@@ -788,10 +865,13 @@
 
     function drawMathFunctionGraph() {
         ctx.save(); ctx.strokeStyle = '#00f5d4'; ctx.lineWidth = 3; ctx.beginPath(); let first = true;
-        let convertedFormula = translateKidsToJs(document.getElementById('kidsFormulaInput').value);
         for (let sx = 0; sx < canvas.width; sx += 3) {
             let x = toMath(sx, 0).x; let y = 0;
-            try { y = eval(convertedFormula); } catch(e) { break; }
+            try { 
+                y = eval(cachedJsFormula); 
+            } catch(e) { 
+                continue; 
+            }
             if (typeof y === 'number' && !isNaN(y) && isFinite(y)) {
                 let s = toScreen(x, y); if (first) { ctx.moveTo(s.x, s.y); first = false; } else { ctx.lineTo(s.x, s.y); }
             }
@@ -875,12 +955,16 @@
         ctx.restore();
     }
 
-    function toggleAngleFlip(idx) { if (activeMeasures[idx]) { activeMeasures[idx].flip = !activeMeasures[idx].flip; } }
+    function toggleAngleFlip(idx) { 
+        if (activeMeasures[idx]) { 
+            activeMeasures[idx].flip = !activeMeasures[idx].flip;
+        } 
+    }
 
     function processAndDrawMeasurements() {
-        const outList = document.getElementById('measure-output'); outList.innerHTML = '';
+        // テキスト情報を蓄積し、中身が真に変化した時のみDOM反映(ちらつき防止とイベント維持)
+        let htmlBuffer = "";
         
-        // 選択された直線の数式連動計算
         if (currentMode === 'select' && selectedDrawingIds.length === 1 && gridType === 4) {
             let activeDrawing = drawings.find(d => d.id === selectedDrawingIds[0]);
             if (activeDrawing && ['line', 'segment', 'ray', 'vector'].includes(activeDrawing.type)) {
@@ -893,21 +977,15 @@
                     let absInt = Math.abs(intercept).toFixed(2);
                     let eqString = `y = ${slope.toFixed(2)}x ${sign}${absInt}`;
                     
-                    let item = document.createElement('li');
-                    item.style.color = '#00f5d4';
-                    item.innerText = (currentLang === 'ja' ? '選択中の直線: ' : 'Selected Line: ') + eqString;
-                    outList.appendChild(item);
+                    htmlBuffer += `<li style="color: #00f5d4;">${currentLang === 'ja' ? '選択中の直線: ' : 'Selected Line: '}${eqString}</li>`;
                     
-                    let palInput = document.getElementById('kidsFormulaInput');
-                    if (document.activeElement !== palInput && document.activeElement.id !== 'fracNumerator' && document.activeElement.id !== 'fracDenominator') {
-                        palInput.value = `${slope.toFixed(2)}*x ${intercept >= 0 ? '+' : '-'}${absInt}`;
-                        parseAndSyncFractionDisplay(palInput.value);
+                    if (document.activeElement !== kidsFormulaInput && document.activeElement.id !== 'fracNumerator' && document.activeElement.id !== 'fracDenominator') {
+                        kidsFormulaInput.value = `${slope.toFixed(2)}*x ${intercept >= 0 ? '+' : '-'}${absInt}`;
+                        cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+                        parseAndSyncFractionDisplay(kidsFormulaInput.value);
                     }
                 } else {
-                    let item = document.createElement('li');
-                    item.style.color = '#ff4d4d';
-                    item.innerText = `x = ${activeDrawing.mX1.toFixed(2)}`;
-                    outList.appendChild(item);
+                    htmlBuffer += `<li style="color: #ff4d4d;">x = ${activeDrawing.mX1.toFixed(2)}</li>`;
                 }
             }
         }
@@ -916,22 +994,61 @@
             if (m.type === 'len') {
                 const p1 = plots.find(p => p.id === m.p1); const p2 = plots.find(p => p.id === m.p2); if (!p1 || !p2) return;
                 let dist = Math.hypot(p2.mx - p1.mx, p2.my - p1.my);
-                outList.appendChild(document.createElement('li')).innerText = currentLang === 'ja' ? `直線 ${p1.id}${p2.id} = ${dist.toFixed(2)}` : `Line ${p1.id}${p2.id} = ${dist.toFixed(2)}`;
+                htmlBuffer += `<li>${currentLang === 'ja' ? `直線 ${p1.id}${p2.id} = ${dist.toFixed(2)}` : `Line ${p1.id}${p2.id} = ${dist.toFixed(2)}`}</li>`;
+                
                 const s1 = toScreen(p1.mx, p1.my); const s2 = toScreen(p2.mx, p2.my);
                 ctx.save(); ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
                 ctx.fillStyle = '#ffff00'; ctx.font = 'bold 13px monospace'; ctx.fillText(dist.toFixed(2), (s1.x+s2.x)/2 + 12, (s1.y+s2.y)/2); ctx.restore();
             }
             if (m.type === 'ang') {
                 const p1 = plots.find(p => p.id === m.p1); const p2 = plots.find(p => p.id === m.p2); const p3 = plots.find(p => p.id === m.p3); if (!p1 || !p2 || !p3) return;
-                let a1 = Math.atan2(p1.my - p2.my, p1.mx - p2.mx); let a3 = Math.atan2(p3.my - p2.my, p3.mx - p2.mx);
-                let diff = Math.abs(a3 - a1) * 180 / Math.PI; if (diff > 180) diff = 360 - diff; if (m.flip) diff = 360 - diff;
+                
+                // スクリーン座標系に変換して計算（Y軸反転を正しく吸収するため）
+                const s1 = toScreen(p1.mx, p1.my);
+                const s2 = toScreen(p2.mx, p2.my);
+                const s3 = toScreen(p3.mx, p3.my);
+                
+                let a1 = Math.atan2(s1.y - s2.y, s1.x - s2.x); 
+                let a3 = Math.atan2(s3.y - s2.y, s3.x - s2.x);
+                
+                let diffAng = a3 - a1;
+                while (diffAng < 0) diffAng += Math.PI * 2;
+                
+                let finalDeg = diffAng * 180 / Math.PI;
+                let isAnticlockwise = false;
+                
+                // 通常は劣角（180度以下）をデフォルトとし、反転フラグで完全に優角/劣角をスイッチさせる
+                if (finalDeg > 180) {
+                    finalDeg = 360 - finalDeg;
+                    isAnticlockwise = true;
+                }
+                
+                if (m.flip) {
+                    finalDeg = 360 - finalDeg;
+                    isAnticlockwise = !isAnticlockwise;
+                }
+                
                 let btnLabel = currentLang === 'ja' ? '🔄 反転' : '🔄 Flip';
-                outList.appendChild(document.createElement('li')).innerHTML = `∠${p1.id}${p2.id}${p3.id} = ${diff.toFixed(1)}° <button class="btn-flip-angle" onclick="toggleAngleFlip(${idx})">${btnLabel}</button>`;
-                const s2 = toScreen(p2.mx, p2.my); ctx.save(); ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 2.5;
-                ctx.beginPath(); ctx.arc(s2.x, s2.y, 24, -a1, -a3, !(m.flip ? (a1 > a3) : (a1 < a3))); ctx.stroke();
-                ctx.fillStyle = '#ff4d4d'; ctx.font = 'bold 13px monospace'; ctx.fillText(`${diff.toFixed(1)}°`, s2.x + 28, s2.y - 8); ctx.restore();
+                htmlBuffer += `<li>∠${p1.id}${p2.id}${p3.id} = ${finalDeg.toFixed(1)}° <button class="btn-flip-angle" data-idx="${idx}">${btnLabel}</button></li>`;
+
+                ctx.save(); ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 3;
+                ctx.beginPath(); 
+                ctx.arc(s2.x, s2.y, 28, a1, a3, isAnticlockwise); 
+                ctx.stroke();
+                
+                // テキスト配置用の角度
+                let textAng = a1 + (isAnticlockwise ? -1 : 1) * (Math.abs(a3 - a1) / 2);
+                if (m.flip) textAng += Math.PI;
+                ctx.fillStyle = '#ff4d4d'; ctx.font = 'bold 14px monospace'; 
+                ctx.fillText(`${finalDeg.toFixed(1)}°`, s2.x + 36 * Math.cos(textAng) - 10, s2.y + 36 * Math.sin(textAng) + 4); 
+                ctx.restore();
             }
         });
+
+        // 内部文字列が変わった時だけ書き換える（クリックイベントを保護）
+        if (measureOutput.innerHTML !== htmlBuffer) {
+            measureOutput.innerHTML = htmlBuffer;
+        }
     }
 
     function drawLivePreviewAndTools() {
@@ -952,19 +1069,65 @@
             ctx.stroke();
         }
         else if ((currentMode === 'compass' || currentMode === 'arc') && dragStartMath) {
+            // かっこいいコンパスアニメーションの描画
             const p1 = toScreen(dragStartMath.x, dragStartMath.y);
             let r = Math.hypot(currentX - p1.x, currentY - p1.y);
             
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(currentX, currentY);
-            ctx.stroke();
-
-            ctx.strokeStyle = currentColor; ctx.lineWidth = currentThickness; ctx.globalAlpha = 0.4;
+            // 下地円
+            ctx.strokeStyle = currentColor; ctx.lineWidth = currentThickness; ctx.globalAlpha = 0.3;
             ctx.setLineDash([4, 4]);
             ctx.beginPath(); ctx.arc(p1.x, p1.y, r, 0, Math.PI*2); ctx.stroke();
+            
+            // コンパス脚部の計算
+            let midX = (p1.x + currentX) / 2;
+            let midY = (p1.y + currentY) / 2;
+            let angle = Math.atan2(currentY - p1.y, currentX - p1.x);
+            
+            // 中点から直交方向にコンパスの頭（ヒンジ）を浮かせる
+            let headDist = Math.max(70, r * 0.8); 
+            let headX = midX + Math.cos(angle - Math.PI / 2) * headDist;
+            let headY = midY + Math.sin(angle - Math.PI / 2) * headDist;
+            
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            
+            // 1. 針側の脚（金属シルバー）
+            ctx.strokeStyle = '#b2bec3'; ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(headX, headY);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.stroke();
+            
+            // 2. 鉛筆側の脚（設定中のチョークカラー）
+            ctx.strokeStyle = '#dfe6e9'; ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(headX, headY);
+            let pLegMidX = headX + (currentX - headX) * 0.65;
+            let pLegMidY = headY + (currentY - headY) * 0.65;
+            ctx.lineTo(pLegMidX, pLegMidY);
+            ctx.stroke();
+            
+            // 鉛筆アタッチメントと芯
+            ctx.strokeStyle = currentColor; ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(pLegMidX, pLegMidY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            // 3. 各種ジョイント・針先の強調
+            ctx.fillStyle = '#6c5ce7'; ctx.beginPath(); ctx.arc(headX, headY, 8, 0, Math.PI*2); ctx.fill(); // 頭部ネジ
+            ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(p1.x, p1.y, 3, 0, Math.PI*2); ctx.fill(); // 針の先端
+            ctx.fillStyle = '#ff7675'; ctx.beginPath(); ctx.arc(pLegMidX, pLegMidY, 5, 0, Math.PI*2); ctx.fill(); // 鉛筆留め具
+            
+            // 持ち手つまみ
+            ctx.strokeStyle = '#74b9ff'; ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.moveTo(headX, headY);
+            ctx.lineTo(headX + Math.cos(angle - Math.PI / 2) * 18, headY + Math.sin(angle - Math.PI / 2) * 18);
+            ctx.stroke();
+            
+            ctx.restore();
         }
         else if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLine && dragStartMath) {
             const p1 = toScreen(dragStartMath.x, dragStartMath.y);
@@ -1003,6 +1166,7 @@
 
         ctx.restore();
 
+        // 手元ツール絵文字インジケータ
         ctx.save();
         ctx.translate(currentX, currentY);
         ctx.fillStyle = '#ffffff'; ctx.font = '32px Arial';
@@ -1015,14 +1179,8 @@
             ctx.fillText('📏', -15, -5);
         } else if (currentMode === 'vector') {
             ctx.fillText('➔', -10, 10);
-        } 
-        else if (currentMode === 'compass' || currentMode === 'arc') {
-            if (dragStartMath) {
-                const centerS = toScreen(dragStartMath.x, dragStartMath.y);
-                let rotAngle = Math.atan2(currentY - centerS.y, currentX - centerS.x);
-                ctx.rotate(rotAngle + Math.PI/2);
-            }
-            ctx.fillText('🧭', -16, 16);
+        } else if (currentMode === 'compass' || currentMode === 'arc') {
+            ctx.fillText('🧭', -12, 12); // コンパスモード時は方位磁針/コンパス絵文字を追従
         } else if (currentMode === 'eraser') {
             ctx.fillText('🧼', -15, 15);
         } else if (currentMode === 'plot') {
@@ -1062,11 +1220,49 @@
         else if (currentMode === 'measure-ang') {
             let grabbed = null;
             for (let p of plots) { if (Math.hypot(e.clientX - toScreen(p.mx, p.my).x, e.clientY - toScreen(p.mx, p.my).y) < 22) { grabbed = p; break; } }
+            
             if (grabbed) {
+                measureLineSequence = [];
                 measureClickSequence.push(grabbed.id);
                 if (measureClickSequence.length === 3) {
                     saveHistory(); activeMeasures.push({ type: 'ang', p1: measureClickSequence[0], p2: measureClickSequence[1], p3: measureClickSequence[2], flip: false });
                     measureClickSequence = [];
+                }
+            } else {
+                let hitLine = null;
+                for (let d of drawings) {
+                    if (['segment', 'line', 'ray', 'vector'].includes(d.type)) {
+                        if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 20) { hitLine = d; break; }
+                    }
+                }
+                if (hitLine) {
+                    measureClickSequence = []; 
+                    if (!measureLineSequence.includes(hitLine.id)) {
+                        measureLineSequence.push(hitLine.id);
+                    }
+                    if (measureLineSequence.length === 2) {
+                        let L1 = drawings.find(d => d.id === measureLineSequence[0]);
+                        let L2 = drawings.find(d => d.id === measureLineSequence[1]);
+                        measureLineSequence = [];
+                        
+                        if (L1 && L2 && L1.bindP1 && L1.bindP2 && L2.bindP1 && L2.bindP2) {
+                            let commonPt = null; let p1 = null; let p3 = null;
+                            if (L1.bindP1 === L2.bindP1) { commonPt = L1.bindP1; p1 = L1.bindP2; p3 = L2.bindP2; }
+                            else if (L1.bindP1 === L2.bindP2) { commonPt = L1.bindP1; p1 = L1.bindP2; p3 = L2.bindP1; }
+                            else if (L1.bindP2 === L2.bindP1) { commonPt = L1.bindP2; p1 = L1.bindP1; p3 = L2.bindP2; }
+                            else if (L1.bindP2 === L2.bindP2) { commonPt = L1.bindP2; p1 = L1.bindP1; p3 = L2.bindP1; }
+                            
+                            if (commonPt) {
+                                saveHistory();
+                                activeMeasures.push({ type: 'ang', p1: p1, p2: commonPt, p3: p3, flip: false });
+                            } else {
+                                let nodeP1 = plots.find(p => p.id === L1.bindP1);
+                                let nodeP2 = plots.find(p => p.id === L1.bindP2);
+                                saveHistory();
+                                activeMeasures.push({ type: 'ang', p1: L2.bindP1, p2: nodeP1.id, p3: nodeP2.id, flip: false });
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1093,9 +1289,9 @@
                     if (['segment','line','ray','vector'].includes(d.type)) {
                         if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 18) {
                             selectedDrawingIds = [d.id];
-                            document.getElementById('lineStyleSelect').value = d.lineStyle || 'solid';
-                            document.getElementById('penTypeSelect').value = d.penType || 'chalk';
-                            document.getElementById('thicknessSelect').value = String(d.thickness || 6); break;
+                            lineStyleSelect.value = d.lineStyle || 'solid';
+                            penTypeSelect.value = d.penType || 'chalk';
+                            thicknessSelect.value = String(d.thickness || 6); break;
                         }
                     }
                 }
@@ -1107,8 +1303,24 @@
     }
 
     function draw(e) {
-        if (!isDrawing) return; const m = toMath(e.clientX, e.clientY); liveCurrentMath = m;
+        const m = toMath(e.clientX, e.clientY); liveCurrentMath = m;
         let dx = e.clientX - startX; let dy = e.clientY - startY; currentX = e.clientX; currentY = e.clientY;
+
+        if (currentMode === 'measure-ang') {
+            hoveredPlotId = null; hoveredLineId = null;
+            for (let p of plots) {
+                if (Math.hypot(e.clientX - toScreen(p.mx, p.my).x, e.clientY - toScreen(p.mx, p.my).y) < 22) { hoveredPlotId = p.id; break; }
+            }
+            if (!hoveredPlotId) {
+                for (let d of drawings) {
+                    if (['segment', 'line', 'ray', 'vector'].includes(d.type)) {
+                        if (distToSegment({x: e.clientX, y: e.clientY}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 20) { hoveredLineId = d.id; break; }
+                    }
+                }
+            }
+        }
+
+        if (!isDrawing) return;
 
         if (currentMode === 'free') {
             activeFreehandPoints.push({ x: m.x, y: m.y });
@@ -1202,7 +1414,6 @@
     function executeEraserLogic(sx, sy) {
         let mPt = toMath(sx, sy);
         
-        // 1. 手書き線と円弧の削り取り判定
         drawings.forEach(d => { 
             if(d.type === 'freehand') {
                 d.pts = d.pts.filter(pt => Math.hypot(sx - toScreen(pt.x, pt.y).x, sy - toScreen(pt.x, pt.y).y) > 25); 
@@ -1227,32 +1438,21 @@
                     }
                 }
             }
-        });
-
-        // 2. 正円（circle）を消しゴムで削った場合、削られた円弧（arc）に変換するロジック
-        drawings.forEach(d => {
-            if (d.type === 'circle') {
+            else if (d.type === 'circle') {
                 let pC = toScreen(d.mX1, d.mY1);
                 let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
                 let distToCircleEdge = Math.abs(Math.hypot(sx - pC.x, sy - pC.y) - rS);
                 
-                // 消しゴムが円周の近くを通過したとき
                 if (distToCircleEdge < 25) {
                     let hitAngle = Math.atan2(sy - pC.y, sx - pC.x);
-                    
-                    // 正円(0〜2π)を円弧(arc)モードに切り替え、なぞった位置を基準に開いた円弧にコンバート
                     d.type = 'arc';
-                    
-                    // なぞった部分（hitAngle）の前後（約20度＝約0.35ラジアン）を切り取る
                     let gap = 0.35;
                     let startA = hitAngle + gap;
                     let endA = hitAngle + (Math.PI * 2) - gap;
                     
-                    // 角度を 0 〜 2π の範囲内に正規化
                     if (startA > Math.PI * 2) startA -= Math.PI * 2;
                     if (endA > Math.PI * 2) endA -= Math.PI * 2;
                     
-                    // 開始角が終了角より小さくなるように調整
                     if (startA > endA) {
                         d.startAngle = startA;
                         d.endAngle = endA + Math.PI * 2;
@@ -1264,10 +1464,8 @@
             }
         });
         
-        // 配列クリーンアップ（極端に短くなった円弧などを削除）
         drawings = drawings.filter(d => (d.type !== 'freehand' || d.pts.length > 1) && (d.type !== 'arc' || d.endAngle > d.startAngle));
         
-        // 3. 直線系オブジェクトなどのヒット判定一括消去
         let drawToDelete = null;
         for(let d of drawings) {
             if(['segment','line','ray','vector','arc'].includes(d.type)) {
@@ -1281,84 +1479,97 @@
             plots = plots.filter(p => p.id !== drawToDelete.bindP1 && p.id !== drawToDelete.bindP2); 
         }
 
-        // 4. 単体独立ポイント（Plot）の消去と連動処理
         plots = plots.filter(p => {
             const shouldDelete = (Math.hypot(sx - toScreen(p.mx, p.my).x, sy - toScreen(p.mx, p.my).y) < 20);
-            if (shouldDelete) { 
-                drawings = drawings.filter(d => d.bindP1 !== p.id && d.bindP2 !== p.id && !(d.type === 'circle' && d.mX1 === p.mx && d.mY1 === p.my)); 
-                activeMeasures = activeMeasures.filter(m => m.p1 !== p.id && m.p2 !== p.id && m.p3 !== p.id); 
+            if (shouldDelete) {
+                activeMeasures = activeMeasures.filter(m => m.p1 !== p.id && m.p2 !== p.id && m.p3 !== p.id);
             }
             return !shouldDelete;
         });
     }
 
-    function processLassoSelection() { if (lassoPoints.length < 3) return; selectedPlotIds = []; plots.forEach(p => { if (isPointInLasso(toScreen(p.mx, p.my))) selectedPlotIds.push(p.id); }); }
-    function isPointInLasso(sPt) {
+    function processLassoSelection() {
+        if (lassoPoints.length < 3) return;
+        selectedPlotIds = []; selectedDrawingIds = [];
+        plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
+        drawings.forEach(d => {
+            if (['segment','line','ray','vector'].includes(d.type)) {
+                if (isPointInPolygon(toScreen(d.mX1, d.mY1), lassoPoints) && isPointInPolygon(toScreen(d.mX2, d.mY2), lassoPoints)) selectedDrawingIds.push(d.id);
+            }
+        });
+    }
+
+    function isPointInPolygon(pt, poly) {
         let inside = false;
-        for (let i = 0, j = lassoPoints.length - 1; i < lassoPoints.length; j = i++) {
-            if (((lassoPoints[i].y > sPt.y) !== (lassoPoints[j].y > sPt.y)) && (sPt.x < (lassoPoints[j].x - lassoPoints[i].x) * (sPt.y - lassoPoints[i].y) / (lassoPoints[j].y - lassoPoints[i].y) + lassoPoints[i].x)) inside = !inside;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            let xi = poly[i].x, yi = poly[i].y; let xj = poly[j].x, yj = poly[j].y;
+            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
         }
         return inside;
     }
 
     function distToSegment(p, v, w) {
-        let l2 = Math.hypot(v.x - w.x, v.y - w.y)**2; if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
-        let t = Math.max(0, Math.min(1, ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2));
+        let l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2); if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2; t = Math.max(0, Math.min(1, t));
         return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    canvas.addEventListener('touchstart', e => { if(e.touches.length === 1) startDrawing(e.touches[0]); }, {passive: true});
+    canvas.addEventListener('touchmove', e => { if(e.touches.length === 1) draw(e.touches[0]); }, {passive: true});
+    canvas.addEventListener('touchend', e => { stopDrawing(e.changedTouches[0]); });
+
+    window.addEventListener('wheel', e => {
+        e.preventDefault();
+        const mBefore = toMath(e.clientX, e.clientY);
+        if (e.deltaY < 0) scale *= 1.08; else scale /= 1.08;
+        scale = Math.max(0.15, Math.min(20, scale));
+        const sAfter = toScreen(mBefore.x, mBefore.y);
+        offsetX += (e.clientX - sAfter.x); offsetY += (e.clientY - sAfter.y);
+    }, { passive: false });
+
     function saveData() {
-        const blob = new Blob([JSON.stringify({ drawings, plots, labelIndex, gridType, currentLang, activeMeasures }, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Blackboard_Data_${Date.now()}.json`; a.click();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ drawings, plots, activeMeasures, groups, labelIndex }));
+        const dlAnchor = document.createElement('a'); dlAnchor.setAttribute("href", dataStr); dlAnchor.setAttribute("download", "blackboard_geometry.json");
+        document.body.appendChild(dlAnchor); dlAnchor.click(); dlAnchor.remove();
     }
     function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
-    function loadData(input) {
-        if (!input.files || input.files.length === 0) return;
+    function loadData(el) {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const data = JSON.parse(e.target.result); saveHistory();
-                drawings = data.drawings || []; plots = data.plots || []; labelIndex = data.labelIndex || 0; gridType = data.gridType || 0; activeMeasures = data.activeMeasures || [];
-                cycleGridTextOnly();
-            } catch(err) { alert("JSON読み込みに失敗しました。"); }
-        }; reader.readAsText(input.files[0]);
+                const parsed = JSON.parse(e.target.result); saveHistory();
+                drawings = parsed.drawings || []; plots = parsed.plots || []; activeMeasures = parsed.activeMeasures || []; groups = parsed.groups || []; labelIndex = parsed.labelIndex || 0;
+            } catch(err) { alert("JSONファイルの読み込みに失敗しました。"); }
+        };
+        if(el.files[0]) reader.readAsText(el.files[0]);
     }
 
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    // ドラッグ移動可能なツールバー
+    const tbHandle = document.getElementById('myToolbarHandle');
+    const myTb = document.getElementById('myToolbar');
+    let isDraggingToolbar = false; let tbOffsetX = 0; let tbOffsetY = 0;
+    
+    tbHandle.addEventListener('mousedown', e => { isDraggingToolbar = true; tbOffsetX = e.clientX - myTb.offsetLeft; tbOffsetY = e.clientY - myTb.offsetTop; e.preventDefault(); });
+    window.addEventListener('mousemove', e => { if (!isDraggingToolbar) return; myTb.style.left = (e.clientX - tbOffsetX) + 'px'; myTb.style.top = (e.clientY - tbOffsetY) + 'px'; });
+    window.addEventListener('mouseup', () => isDraggingToolbar = false);
+    
+    tbHandle.addEventListener('touchstart', e => { isDraggingToolbar = true; tbOffsetX = e.touches[0].clientX - myTb.offsetLeft; tbOffsetY = e.touches[0].clientY - myTb.offsetTop; }, {passive:true});
+    window.addEventListener('touchmove', e => { if (!isDraggingToolbar) return; myTb.style.left = (e.touches[0].clientX - tbOffsetX) + 'px'; myTb.style.top = (e.touches[0].clientY - tbOffsetY) + 'px'; }, {passive:true});
+    window.addEventListener('touchend', () => isDraggingToolbar = false);
 
-    (function init() {
-        window.addEventListener('resize', resizeCanvas);
-        canvas.addEventListener('pointerdown', startDrawing);
-        canvas.addEventListener('pointermove', draw);
-        window.addEventListener('pointerup', stopDrawing);
-        
-        const toolbar = document.getElementById('myToolbar'); const handle = document.getElementById('myToolbarHandle');
-        let isDraggingBar = false; let sBarX=0, sBarY=0, sLeft=15, sTop=15;
-        function barStart(cx, cy) { isDraggingBar = true; sBarX = cx; sBarY = cy; sLeft = toolbar.offsetLeft; sTop = toolbar.offsetTop; }
-        function barMove(cx, cy) {
-            if (!isDraggingBar) return;
-            let tl = sLeft + (cx - sBarX); let tt = sTop + (cy - sBarY);
-            if (tt < 30) tt = 0; if (tl < 30) tl = 0;
-            if (window.innerWidth - (tl + toolbar.offsetWidth) < 30) tl = window.innerWidth - toolbar.offsetWidth;
-            if (window.innerHeight - (tt + toolbar.offsetHeight) < 30) tt = window.innerHeight - toolbar.offsetHeight;
-            toolbar.style.left = tl + 'px'; toolbar.style.top = tt + 'px';
-        }
-        handle.addEventListener('mousedown', (e) => { barStart(e.clientX, e.clientY); e.stopPropagation(); });
-        window.addEventListener('mousemove', (e) => barMove(e.clientX, e.clientY));
-        window.addEventListener('mouseup', () => isDraggingBar = false);
-        handle.addEventListener('touchstart', (e) => { if(e.touches.length>0) barStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
-        window.addEventListener('touchmove', (e) => { if(isDraggingBar && e.touches.length>0) barMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
-
-        window.addEventListener('wheel', (e) => {
-            scale = Math.max(0.4, Math.min(5.0, scale * (e.deltaY < 0 ? 1.05 : 0.95)));
-        }, { passive: true });
-
-        resizeCanvas(); updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
-        document.querySelectorAll('.advanced-feature').forEach(el => el.style.display = 'none');
-        parseAndSyncFractionDisplay(document.getElementById('kidsFormulaInput').value);
-        
-        tick();
-    })();
+    // 初期化起動
+    updateDropdowns();
+    renderKidsKeyboard();
+    parseAndSyncFractionDisplay("0.2*x*x");
+    updateInfoMeterInstructions();
+    tick();
 </script>
+
 </body>
 </html>
