@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>最高峰デジタル学習黒板 - 完全版（統合アップデート）</title>
+    <title>最高峰デジタル学習黒板 - 新バージョン修正版</title>
     <style>
         html, body {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -20,7 +20,7 @@
             border: 2px solid rgba(0, 245, 212, 0.35); border-radius: 16px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.85);
             max-width: calc(100vw - 30px); max-height: 92vh; overflow-y: auto;
-            transition: left 0.15s cubic-bezier(0.1, 0.8, 0.2, 1), top 0.15s cubic-bezier(0.1, 0.8, 0.2, 1);
+            transition: left 0.15s cubic-bezier(0.1, 0.8, 0.2, 1), top 0.15s cubic-bezier(0.1, 0.8, 0.2, 1), width 0.15s ease;
             touch-action: pan-y !important;
         }
         .toolbar.tb-vertical { flex-direction: column; flex-wrap: nowrap; width: 165px; max-height: 95vh; padding: 12px 6px; }
@@ -38,6 +38,9 @@
             border-right: 1px solid rgba(255, 255, 255, 0.15); padding-right: 6px; flex-shrink: 0;
         }
         .tool-group.advanced-feature { display: flex; }
+        
+        /* 数学関連の3つのグループは初期状態で非表示に設定 */
+        .math-group { display: none; }
         
         .toolbar.tb-vertical .tool-group {
             flex-direction: column; align-items: stretch; width: 100%; border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 6px;
@@ -88,6 +91,10 @@
         .btn-theorem { background-color: #d35400; }
         .btn-close { background-color: #424949; color: #ffffd1; }
         .btn-adv-toggle { background-color: #4a235a; border: 1px solid #00f5d4; color: #00f5d4; }
+        
+        /* 科目切り替えボタンのスタイル */
+        .btn-subject { background-color: #2e86c1; border: 1px solid #b3e5fc; color: #b3e5fc; }
+        .btn-subject.active { background-color: #d35400; border: 1px solid #ffcc80; color: #ffcc80; }
         
         .active { border: 2.5px solid #00f5d4 !important; box-shadow: 0 0 12px #00f5d4 !important; transform: scale(1.02); }
         
@@ -203,10 +210,18 @@
         </div>
     </div>
     
-    <div class="tool-group" id="group-draw">
-        <span class="group-label" id="lbl-draw">作図</span>
+    <!-- デフォルト状態で選択・アクティブな手書きボタン -->
+    <div class="tool-group" id="group-draw-base">
+        <span class="group-label" id="lbl-draw-base">描画</span>
         <div class="group-content">
             <button class="btn btn-draw active" id="btn-free" onclick="changeMode('free', this)"><span id="txt-free">✏️<br>手書き</span></button>
+        </div>
+    </div>
+    
+    <!-- 「作図」グループ（デフォルト非表示：math-groupクラスを追加） -->
+    <div class="tool-group math-group" id="group-draw">
+        <span class="group-label" id="lbl-draw">作図</span>
+        <div class="group-content">
             <button class="btn btn-draw" id="btn-plot" onclick="changeMode('plot', this)"><span id="txt-plot">📍<br>点を打つ</span></button>
             <button class="btn btn-draw" id="btn-segment" onclick="changeMode('segment', this)"><span id="txt-segment">📏<br>線分</span></button>
             <button class="btn btn-draw" id="btn-line" onclick="changeMode('line', this)"><span id="txt-line">➖<br>直線</span></button>
@@ -219,7 +234,8 @@
         </div>
     </div>
     
-    <div class="tool-group" id="group-op-integrated">
+    <!-- 「探求操作」グループ（デフォルト非表示：math-groupクラスを追加） -->
+    <div class="tool-group math-group" id="group-op-integrated">
         <span class="group-label" id="lbl-op-integrated">探求操作</span>
         <div class="group-content">
             <button class="btn btn-operate" id="btn-select" onclick="changeMode('select', this)"><span id="txt-move">🖐️<br>動かす変形</span></button>
@@ -233,7 +249,8 @@
         </div>
     </div>
     
-    <div class="tool-group" id="group-presets">
+    <!-- 「図形教材」グループ（デフォルト非表示：math-groupクラスを追加） -->
+    <div class="tool-group math-group" id="group-presets">
         <span class="group-label" id="lbl-presets">図形教材</span>
         <div class="group-content">
             <button class="btn btn-preset" id="btn-p-triangle" onclick="changeMode('p-triangle', this)"><span id="txt-p_tri">🔺<br>一般の三角形</span></button>
@@ -248,32 +265,21 @@
         </div>
     </div>
     
-    <div class="tool-group" id="group-history">
-        <span class="group-label" id="lbl-history">履歴</span>
+    <!-- 管理・履歴・共通を整理統合した1つの「システム」グループ -->
+    <div class="tool-group" id="group-system-integrated">
+        <span class="group-label" id="lbl-system">システム</span>
         <div class="group-content">
+            <!-- 数学/標準モード切り替えボタン（初期状態は「数学モードへ」） -->
+            <button class="btn btn-subjectactive active" id="btnAdvancedToggle" onclick="toggleMathMode()"><span id="txt-adv-mode">📐<br>数学モードへ</span></button>
+            <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧼<br>消しゴム</span></button>
+            <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
             <button class="btn btn-history" onclick="handleUndo()"><span id="txt-undo">↩️<br>元に戻す</span></button>
             <button class="btn btn-history" onclick="handleRedo()"><span id="txt-redo">↪️<br>やり直す</span></button>
-        </div>
-    </div>
-    
-    <div class="tool-group" id="group-admin">
-        <span class="group-label" id="lbl-admin">管理</span>
-        <div class="group-content">
-            <button class="btn btn-file" onclick="cycleToolbarSize()"><span id="txt-uisize">🔍<br>UIサイズ</span></button>
             <button class="btn btn-file" onclick="toggleLayout()"><span id="txt-layout">🔄<br>配置切替</span></button>
             <button class="btn btn-file" style="background-color: #2e4053;" onclick="saveData()"><span id="txt-save">💾<br>保存</span></button>
             <button class="btn btn-file" style="background-color: #2e4053;" onclick="triggerJsonUpload()"><span id="txt-load">📤<br>読込</span></button>
-            <input type="file" id="jsonInput" accept=".json" style="display: none;" onchange="loadData(this)">
-        </div>
-    </div>
-    
-    <div class="tool-group" id="group-util">
-        <span class="group-label" id="lbl-util">共通</span>
-        <div class="group-content">
-            <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧼<br>消しゴム</span></button>
-            <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
-            <button class="btn btn-adv-toggle" id="btnAdvancedToggle" onclick="toggleAdvancedMode()"><span id="txt-adv-mode">💎<br>標準モード</span></button>
             <button class="btn" style="background-color: #d35400;" onclick="toggleLanguage()">🌐<br>JP/EN</button>
+            <input type="file" id="jsonInput" accept=".json" style="display: none;" onchange="loadData(this)">
         </div>
     </div>
 </div>
@@ -361,6 +367,8 @@
     let gridType = 1; 
     let isDrawing = false;
     let currentLang = 'ja';
+    
+    let isMathModeActive = false;
     let isAdvancedMode = false;
 
     let scale = 1.0; let offsetX = 0; let offsetY = 0;
@@ -405,7 +413,6 @@
     const btnAdvancedToggle = document.getElementById('btnAdvancedToggle');
     const coordSubPalette = document.getElementById('coordSubPalette');
 
-    // 反転ボタンが確実に動作するためのイベントデリゲーションを設定
     measureOutput.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('btn-flip-angle')) {
             e.stopPropagation();
@@ -431,7 +438,7 @@
         ja: {
             "lbl-hide": "画面", "txt-close": "📥<br>閉じる", "txt-mdl-corner-title": "格納する場所を選んでください",
             "lbl-set": "設定", "lbl-draw": "作図", "lbl-op-integrated": "探求操作", "lbl-presets": "図形教材",
-            "lbl-history": "履歴", "lbl-admin": "管理", "lbl-util": "共通", "lbl-infotitle": "情報メーター", 
+            "lbl-system": "システム", "lbl-draw-base": "描画", "lbl-infotitle": "情報メーター", 
             "lbl-sub-palette-title": "📊 しきをつくろう！", "lbl-sub-step": "目盛り幅:", "lbl-sub-show-num": "すうじ", "lbl-sub-expr-head": "📈 グラフのしき (y = ...)",
             "txt-free": "✏️<br>手書き", "txt-plot": "📍<br>点を打つ", "txt-segment": "📏<br>線分", "txt-line": "➖<br>直線",
             "txt-ray": "🪶<br>半直線", "txt-vector": "➔<br>ベクトル", "txt-compass": "🎯◯<br>コンパス", "txt-arc": "🌐<br>円弧",
@@ -441,7 +448,7 @@
             "txt-move": "🖐️<br>動かす変形", "txt-m_len": "📏<br>長さ測定", "txt-m_ang": "📐<br>角度測定",
             "txt-lasso": "🎯<br>投げ縄選択", "txt-makegroup": "🔒<br>グループ化", "txt-ungroup": "🔓<br>解除",
             "txt-angle-thm": "🎡<br>円周角定理", "txt-grid": "🏁<br>背景変更",
-            "txt-undo": "↩️<br>元に戻す", "txt-redo": "↪️<br>やり直す", "txt-uisize": "🔍<br>UIサイズ", "txt-layout": "🔄<br>配置切替",
+            "txt-undo": "↩️<br>元に戻す", "txt-redo": "↪️<br>やり直す", "txt-layout": "🔄<br>配置切替",
             "txt-save": "💾<br>保存", "txt-load": "📤<br>読込", "txt-eraser": "🧼<br>消しゴム", "txt-clear": "❌<br>全消去",
             inst_free: "【手書き】画面をドラッグします。速度変化や鉛筆の質感を表現できます。",
             inst_plot: "【連続点を打つ】クリックしたすべての場所に幾何学の頂点を配置します。",
@@ -458,13 +465,12 @@
             inst_eraser: "【消しゴム】なぞった線・図形を消去します。円・円弧はこすった部分が分解・削除されます。",
             inst_fixed: "【点を固定】タップした頂点の位置を赤くロックし、動かなくします。",
             inst_bound: "【動きの通り道】点を選び円をタップすると、その円周上のみ動くようになります。",
-            inst_measure_ang: "【角度測定】3つの点、または交わる2本の線(辺)をタッチして角度をはかります。",
             confirm_clear: "黒板のすべての内容（幾何データ、測定、手書き）を完全に消去しますか？"
         },
         en: {
             "lbl-hide": "Screen", "txt-close": "📥<br>Hide", "txt-mdl-corner-title": "Select corner destination to minimize",
             "lbl-set": "Config", "lbl-draw": "Draw", "lbl-op-integrated": "Explore", "lbl-presets": "Shapes",
-            "lbl-history": "History", "lbl-admin": "File", "lbl-util": "Util", "lbl-infotitle": "Data Meter",
+            "lbl-system": "System", "lbl-draw-base": "Sketch", "lbl-infotitle": "Data Meter",
             "lbl-sub-palette-title": "📊 Build Formula!", "lbl-sub-step": "Step:", "lbl-sub-show-num": "Labels", "lbl-sub-expr-head": "📈 Graph Formula (y = ...)",
             "txt-free": "✏️<br>Freehand", "txt-plot": "📍<br>Point", "txt-segment": "📏<br>Segment", "txt-line": "➖<br>Line",
             "txt-ray": "🪶<br>Ray", "txt-vector": "➔<br>Vector", "txt-compass": "🎯◯<br>Compass", "txt-arc": "🌐<br>Arc",
@@ -475,7 +481,7 @@
             "txt-move": "🖐️<br>Morph/Move", "txt-m_len": "📏<br>Length", "txt-m_ang": "📐<br>Angle",
             "txt-lasso": "🎯<br>Lasso", "txt-makegroup": "🔒<br>Group", "txt-ungroup": "🔓<br>Ungroup",
             "txt-angle-thm": "🎡<br>Inscribed Thm", "txt-grid": "🏁<br>Change BG",
-            "txt-undo": "↩️<br>Undo", "txt-redo": "↪️<br>Redo", "txt-uisize": "🔍<br>UI Size", "txt-layout": "🔄<br>Layout",
+            "txt-undo": "↩️<br>Undo", "txt-redo": "↪️<br>Redo", "txt-layout": "🔄<br>Layout",
             "txt-save": "💾<br>Save", "txt-load": "📤<br>Load", "txt-eraser": "🧼<br>Eraser", "txt-clear": "❌<br>Clear All",
             inst_free: "Freehand: Drag canvas. Simulated chalk/pencil textures active.",
             inst_plot: "Plot Point: Places continuous geometric vertices upon canvas taps.",
@@ -492,7 +498,6 @@
             inst_eraser: "Eraser: Scrub components out. Circle / linear arcs slice back or clear dynamically.",
             inst_fixed: "Lock Point: Freeze chosen vertex anchor into non-movable coordinate state.",
             inst_bound: "Orbit Path: Bind dynamic points to track limited purely inside circle paths.",
-            inst_measure_ang: "Angle: Select 3 points or 2 connecting lines to measure angles.",
             confirm_clear: "Are you sure you want to completely wipe the blackboard content?"
         }
     };
@@ -529,17 +534,22 @@
         document.getElementById('toolbarExpandBtn').style.display = 'none';
     }
 
-    function toggleAdvancedMode() {
-        isAdvancedMode = !isAdvancedMode;
-        const advElements = document.querySelectorAll('.advanced-feature');
-        if (isAdvancedMode) {
-            btnAdvancedToggle.innerHTML = currentLang === 'ja' ? '💎 高度モード' : '💎 Advanced';
+    function toggleMathMode() {
+        isMathModeActive = !isMathModeActive;
+        const mathGroups = document.querySelectorAll('.math-group');
+        const toggleBtnSpan = document.querySelector('#btnAdvancedToggle span');
+        
+        if (isMathModeActive) {
+            mathGroups.forEach(el => el.style.display = 'flex');
+            toggleBtnSpan.innerHTML = currentLang === 'ja' ? '📐<br>標準モードへ' : '📐<br>To Standard';
             btnAdvancedToggle.style.backgroundColor = '#117a65';
-            advElements.forEach(el => { el.style.display = (el.tagName === 'BUTTON') ? 'flex' : 'block'; });
         } else {
-            btnAdvancedToggle.innerHTML = currentLang === 'ja' ? '💎 標準モード' : '💎 Standard';
+            mathGroups.forEach(el => el.style.display = 'none');
+            toggleBtnSpan.innerHTML = currentLang === 'ja' ? '📐<br>数学モードへ' : '📐<br>To Math';
             btnAdvancedToggle.style.backgroundColor = '#4a235a';
-            advElements.forEach(el => el.style.display = 'none');
+            if (currentMode !== 'free' && currentMode !== 'eraser') {
+                changeMode('free', document.getElementById('btn-free'));
+            }
         }
     }
 
@@ -606,7 +616,7 @@
                 else if (item.k === '²') { kidsFormulaInput.value += '*x'; }
                 else { kidsFormulaInput.value += item.k; }
                 cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
-                parseAndSyncFractionDisplay(kidsFormulaInput.value);
+                parseAndSyncFractionDisplay(kidsKeyboardGrid);
             };
             container.appendChild(btn);
         });
@@ -648,7 +658,14 @@
                 else el.innerHTML = langDict[currentLang][id];
             }
         }
-        btnAdvancedToggle.innerHTML = isAdvancedMode ? (currentLang==='ja'?'💎 高度モード':'💎 Advanced') : (currentLang==='ja'?'💎 標準モード':'💎 Standard');
+        
+        const toggleBtnSpan = document.querySelector('#btnAdvancedToggle span');
+        if (isMathModeActive) {
+            toggleBtnSpan.innerHTML = currentLang === 'ja' ? '📐<br>標準モードへ' : '📐<br>To Standard';
+        } else {
+            toggleBtnSpan.innerHTML = currentLang === 'ja' ? '📐<br>数学モードへ' : '📐<br>To Math';
+        }
+
         updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
         cycleGridTextOnly();
     }
@@ -680,11 +697,8 @@
         coordSubPalette.style.display = (gridType === 4) ? 'block' : 'none';
     }
 
-    function cycleToolbarSize() {
-        const tb = document.getElementById('myToolbar'); tb.classList.remove('tb-small', 'tb-large');
-        toolbarSizeState = (toolbarSizeState + 1) % 3;
-        if (toolbarSizeState === 0) tb.classList.add('tb-small'); if (toolbarSizeState === 2) tb.classList.add('tb-large');
-    }
+    function cycleToolbarSize() {}
+    
     function toggleLayout() { const tb = document.getElementById('myToolbar'); layoutState = (layoutState + 1) % 2; if (layoutState === 1) tb.classList.add('tb-vertical'); else tb.classList.remove('tb-vertical'); }
 
     function toScreen(mx, my) { return { x: canvas.width / 2 + mx * baseGridSize * scale + offsetX, y: canvas.height / 2 - my * baseGridSize * scale + offsetY }; }
@@ -928,8 +942,8 @@
                 for(let j=0; j<2; j++) ctx.fillRect(s2.x + (Math.random()-0.5)*d.thickness*1.5, s2.y + (Math.random()-0.5)*d.thickness*1.5, 1.2, 1.2);
             }
         } else {
-            ctx.beginPath(); ctx.moveTo(toScreen(d.pts[0].x, d.pts[0].y).x, toScreen(d.pts[0].x, d.pts[0].y).y);
-            for (let i = 1; i < d.pts.length; i++) ctx.lineTo(toScreen(d.pts[i].x, d.pts[i].y).x, toScreen(d.pts[i].x, d.pts[i].y).y);
+            ctx.beginPath(); ctx.moveTo(toScreen(d.pts[0].x, d.pts[0].y).x, toScreen(d.pts[0].y, d.pts[0].y).y);
+            for (let i = 1; i < d.pts.length; i++) ctx.lineTo(toScreen(d.pts[i].x, d.pts[i].y).x, toScreen(d.pts[i].y, d.pts[i].y).y);
             ctx.stroke();
         }
         ctx.restore();
@@ -962,7 +976,6 @@
     }
 
     function processAndDrawMeasurements() {
-        // テキスト情報を蓄積し、中身が真に変化した時のみDOM反映(ちらつき防止とイベント維持)
         let htmlBuffer = "";
         
         if (currentMode === 'select' && selectedDrawingIds.length === 1 && gridType === 4) {
@@ -1003,7 +1016,6 @@
             if (m.type === 'ang') {
                 const p1 = plots.find(p => p.id === m.p1); const p2 = plots.find(p => p.id === m.p2); const p3 = plots.find(p => p.id === m.p3); if (!p1 || !p2 || !p3) return;
                 
-                // スクリーン座標系に変換して計算（Y軸反転を正しく吸収するため）
                 const s1 = toScreen(p1.mx, p1.my);
                 const s2 = toScreen(p2.mx, p2.my);
                 const s3 = toScreen(p3.mx, p3.my);
@@ -1017,7 +1029,6 @@
                 let finalDeg = diffAng * 180 / Math.PI;
                 let isAnticlockwise = false;
                 
-                // 通常は劣角（180度以下）をデフォルトとし、反転フラグで完全に優角/劣角をスイッチさせる
                 if (finalDeg > 180) {
                     finalDeg = 360 - finalDeg;
                     isAnticlockwise = true;
@@ -1036,7 +1047,6 @@
                 ctx.arc(s2.x, s2.y, 28, a1, a3, isAnticlockwise); 
                 ctx.stroke();
                 
-                // テキスト配置用の角度
                 let textAng = a1 + (isAnticlockwise ? -1 : 1) * (Math.abs(a3 - a1) / 2);
                 if (m.flip) textAng += Math.PI;
                 ctx.fillStyle = '#ff4d4d'; ctx.font = 'bold 14px monospace'; 
@@ -1045,7 +1055,6 @@
             }
         });
 
-        // 内部文字列が変わった時だけ書き換える（クリックイベントを保護）
         if (measureOutput.innerHTML !== htmlBuffer) {
             measureOutput.innerHTML = htmlBuffer;
         }
@@ -1069,21 +1078,17 @@
             ctx.stroke();
         }
         else if ((currentMode === 'compass' || currentMode === 'arc') && dragStartMath) {
-            // かっこいいコンパスアニメーションの描画
             const p1 = toScreen(dragStartMath.x, dragStartMath.y);
             let r = Math.hypot(currentX - p1.x, currentY - p1.y);
             
-            // 下地円
             ctx.strokeStyle = currentColor; ctx.lineWidth = currentThickness; ctx.globalAlpha = 0.3;
             ctx.setLineDash([4, 4]);
             ctx.beginPath(); ctx.arc(p1.x, p1.y, r, 0, Math.PI*2); ctx.stroke();
             
-            // コンパス脚部の計算
             let midX = (p1.x + currentX) / 2;
             let midY = (p1.y + currentY) / 2;
             let angle = Math.atan2(currentY - p1.y, currentX - p1.x);
             
-            // 中点から直交方向にコンパスの頭（ヒンジ）を浮かせる
             let headDist = Math.max(70, r * 0.8); 
             let headX = midX + Math.cos(angle - Math.PI / 2) * headDist;
             let headY = midY + Math.sin(angle - Math.PI / 2) * headDist;
@@ -1093,14 +1098,12 @@
             ctx.lineJoin = 'round';
             ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(0,0,0,0.5)';
             
-            // 1. 針側の脚（金属シルバー）
             ctx.strokeStyle = '#b2bec3'; ctx.lineWidth = 6;
             ctx.beginPath();
             ctx.moveTo(headX, headY);
             ctx.lineTo(p1.x, p1.y);
             ctx.stroke();
             
-            // 2. 鉛筆側の脚（設定中のチョークカラー）
             ctx.strokeStyle = '#dfe6e9'; ctx.lineWidth = 6;
             ctx.beginPath();
             ctx.moveTo(headX, headY);
@@ -1109,23 +1112,15 @@
             ctx.lineTo(pLegMidX, pLegMidY);
             ctx.stroke();
             
-            // 鉛筆アタッチメントと芯
             ctx.strokeStyle = currentColor; ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(pLegMidX, pLegMidY);
             ctx.lineTo(currentX, currentY);
             ctx.stroke();
             
-            // 3. 各種ジョイント・針先の強調
-            ctx.fillStyle = '#6c5ce7'; ctx.beginPath(); ctx.arc(headX, headY, 8, 0, Math.PI*2); ctx.fill(); // 頭部ネジ
-            ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(p1.x, p1.y, 3, 0, Math.PI*2); ctx.fill(); // 針の先端
-            ctx.fillStyle = '#ff7675'; ctx.beginPath(); ctx.arc(pLegMidX, pLegMidY, 5, 0, Math.PI*2); ctx.fill(); // 鉛筆留め具
-            
-            // 持ち手つまみ
-            ctx.strokeStyle = '#74b9ff'; ctx.lineWidth = 5;
-            ctx.beginPath(); ctx.moveTo(headX, headY);
-            ctx.lineTo(headX + Math.cos(angle - Math.PI / 2) * 18, headY + Math.sin(angle - Math.PI / 2) * 18);
-            ctx.stroke();
+            ctx.fillStyle = '#6c5ce7'; ctx.beginPath(); ctx.arc(headX, headY, 8, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(p1.x, p1.y, 3, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = '#ff7675'; ctx.beginPath(); ctx.arc(pLegMidX, pLegMidY, 5, 0, Math.PI*2); ctx.fill(); 
             
             ctx.restore();
         }
@@ -1166,7 +1161,6 @@
 
         ctx.restore();
 
-        // 手元ツール絵文字インジケータ
         ctx.save();
         ctx.translate(currentX, currentY);
         ctx.fillStyle = '#ffffff'; ctx.font = '32px Arial';
@@ -1179,8 +1173,6 @@
             ctx.fillText('📏', -15, -5);
         } else if (currentMode === 'vector') {
             ctx.fillText('➔', -10, 10);
-        } else if (currentMode === 'compass' || currentMode === 'arc') {
-            ctx.fillText('🧭', -12, 12); // コンパスモード時は方位磁針/コンパス絵文字を追従
         } else if (currentMode === 'eraser') {
             ctx.fillText('🧼', -15, 15);
         } else if (currentMode === 'plot') {
@@ -1418,26 +1410,6 @@
             if(d.type === 'freehand') {
                 d.pts = d.pts.filter(pt => Math.hypot(sx - toScreen(pt.x, pt.y).x, sy - toScreen(pt.x, pt.y).y) > 25); 
             }
-            else if (d.type === 'arc') {
-                let pC = toScreen(d.mX1, d.mY1);
-                let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
-                let distToArcLine = Math.abs(Math.hypot(sx - pC.x, sy - pC.y) - rS);
-                
-                if (distToArcLine < 25) { 
-                    let eraseAngle = Math.atan2(sy - pC.y, sx - pC.x);
-                    let sA = d.startAngle;
-                    let eA = d.endAngle;
-                    
-                    let diffStart = Math.abs(eraseAngle - sA);
-                    let diffEnd = Math.abs(eraseAngle - eA);
-                    
-                    if (diffStart < diffEnd && diffStart < 0.5) {
-                        d.startAngle = eraseAngle + 0.12;
-                    } else if (diffEnd < diffStart && diffEnd < 0.5) {
-                        d.endAngle = eraseAngle - 0.12;
-                    }
-                }
-            }
             else if (d.type === 'circle') {
                 let pC = toScreen(d.mX1, d.mY1);
                 let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
@@ -1466,19 +1438,6 @@
         
         drawings = drawings.filter(d => (d.type !== 'freehand' || d.pts.length > 1) && (d.type !== 'arc' || d.endAngle > d.startAngle));
         
-        let drawToDelete = null;
-        for(let d of drawings) {
-            if(['segment','line','ray','vector','arc'].includes(d.type)) {
-                if (d.type !== 'freehand' && d.type !== 'arc') {
-                    if (distToSegment({x: sx, y: sy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) < 16) { drawToDelete = d; break; }
-                }
-            }
-        }
-        if (drawToDelete) { 
-            drawings = drawings.filter(d => d.id !== drawToDelete.id); 
-            plots = plots.filter(p => p.id !== drawToDelete.bindP1 && p.id !== drawToDelete.bindP2); 
-        }
-
         plots = plots.filter(p => {
             const shouldDelete = (Math.hypot(sx - toScreen(p.mx, p.my).x, sy - toScreen(p.mx, p.my).y) < 20);
             if (shouldDelete) {
@@ -1550,7 +1509,6 @@
         if(el.files[0]) reader.readAsText(el.files[0]);
     }
 
-    // ドラッグ移動可能なツールバー
     const tbHandle = document.getElementById('myToolbarHandle');
     const myTb = document.getElementById('myToolbar');
     let isDraggingToolbar = false; let tbOffsetX = 0; let tbOffsetY = 0;
@@ -1563,7 +1521,6 @@
     window.addEventListener('touchmove', e => { if (!isDraggingToolbar) return; myTb.style.left = (e.touches[0].clientX - tbOffsetX) + 'px'; myTb.style.top = (e.touches[0].clientY - tbOffsetY) + 'px'; }, {passive:true});
     window.addEventListener('touchend', () => isDraggingToolbar = false);
 
-    // 初期化起動
     updateDropdowns();
     renderKidsKeyboard();
     parseAndSyncFractionDisplay("0.2*x*x");
