@@ -1,4 +1,29 @@
 ------------------------------------------------------------------------------------------------------------------------------
+[Software Name] Premium Digital Learning Blackboard - Standard & Math Hybrid Edition
+[Version] Ver. 51.0 (Toolbar Optimization Update)
+[Copyright Holder] Masanori Shimizu
+[System Requirements] HTML5-compatible web browser (Edge, Chrome, Safari, Firefox, etc.), tablet, interactive whiteboard, or smartphone
+[Software Type] Freeware (Donations gratefully accepted)
+------------------------------------------------------------------------------------------------------------------------------
+
+▼1. Overview
+This software is a high-performance digital blackboard application designed to facilitate intuitive, aesthetically pleasing, and deep learning in both classroom and home study settings.
+The latest version has evolved into a hybrid system: the startup screen is now a clean, unified "Handwriting Mode," while "Math Mode" can be activated only when needed. It handles everything from the realistic texture of chalk to cutting-edge dynamic geometry (interactive shape manipulation) and automatic graph plotting—all within a single interface.
+
+▼2. Key Updates and Changes
+・[Screen Optimization] The startup screen features a streamlined toolbar, creating a simple interface focused on handwriting.
+・[Math Mode Switching] A single tap of the "Switch to Math Mode" button instantly reveals advanced features such as a compass, various construction tools, geometric teaching aids, and interactive shape manipulation.
+・[System Group Integration] Management, History, and Common groups have been consolidated into a single "System" group for improved usability.
+・[Compass Improvements] The compass animation during drawing has been streamlined, and the visuals refined to allow for greater focus on geometric construction.
+・[Background Function Stability] Adjustments were made to ensure more accurate switching between background types, such as standard grids, English writing lines, Japanese writing grids (cross-ruled), and coordinate plane axes.
+
+▼3. Installation and Launch Instructions
+
+Double-click the downloaded "blackboard.html" file or drag and drop it into your web browser. It operates entirely offline, without requiring an internet connection.
+
+▼4. Disclaimer
+The developer assumes no liability for any damages or losses arising from the use of this software. Please feel free to use it with confidence, whether for personal study or in a school setting.
+------------------------------------------------------------------------------------------------------------------------------
 【ソフト名】最高峰デジタル学習黒板 - スタンダード＆数学ハイブリッド版
 【バージョン】Ver 51.0 (ツールバー最適化アップデート)
 【著作権者】清水　正典
