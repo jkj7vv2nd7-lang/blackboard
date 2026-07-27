@@ -124,52 +124,78 @@
         }
         .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffff00; font-family: monospace; font-size: 13px; font-weight: bold; }
 
-        /* 関数パレット (修正済み) */
+        /* =========================================================
+           改善版 関数パレット スタイル設定
+        ========================================================= */
         .coord-sub-palette {
             display: none; position: absolute; bottom: 20px; left: 20px; z-index: 95;
-            background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
-            padding: 12px; width: 350px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
-            font-size: 12px; color: white; box-sizing: border-box;
+            background-color: rgba(10, 15, 12, 0.98); border: 2px solid #00f5d4; border-radius: 16px;
+            padding: 14px; width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            font-size: 13px; color: white; box-sizing: border-box;
         }
-        .palette-title { font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 8px; cursor: pointer; }
-        .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 4px; }
-        .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 4px; font-size: 12px; }
+        .palette-title { 
+            font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; 
+            align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 10px; cursor: pointer;
+            font-size: 14px;
+        }
+        .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 6px; }
+        .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 4px 8px; font-size: 13px; }
         
-        .fx-display-container { position: relative; width: 100%; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
-        .fx-input-native {
-            width: 100%; font-size: 16px; font-weight: bold; color: #ffff00;
-            background: #000; border: 2px solid #00f5d4; padding: 8px; border-radius: 8px;
-            outline: none; box-sizing: border-box; text-align: left; font-family: monospace;
+        /* 1. 数式表示エリア（教科書体・大きめの24pt〜28pt表示） */
+        .textbook-font {
+            font-family: "UD デジタル 教科書体 N-R", "UD Digital Kyokasho-N", "HG教科書体", "Kyokasho ICA Pro", "YuMincho", serif;
         }
+        .fx-display-container { position: relative; width: 100%; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
         
         .fraction-sync-display {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 6px; border-radius: 6px; margin-bottom: 2px; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: rgba(0,0,0,0.6); border: 2px solid #00f5d4; padding: 10px 12px; border-radius: 10px; min-height: 60px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
         }
-        .sync-label { font-size: 11px; color: #888; }
-        .sync-math-view { display: inline-flex; align-items: center; font-size: 18px; font-weight: bold; font-family: monospace; }
-        .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 4px; min-width: 25px; }
-        .sync-num { color: #00f5d4; text-align: center; min-height: 18px; }
-        .sync-den { color: #ff4d4d; text-align: center; min-height: 18px; }
-        .sync-line { width: 100%; height: 2px; background-color: #fff; margin: 2px 0; }
-        
+        .sync-label { font-size: 13px; color: #aaa; flex-shrink: 0; }
+        .sync-math-view { 
+            display: inline-flex; align-items: center; 
+            font-size: 26pt; font-weight: bold; color: #ffffff;
+            line-height: 1.1;
+        }
+        .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 6px; vertical-align: middle; }
+        .sync-num { color: #00f5d4; text-align: center; min-height: 32px; padding: 0 4px; }
+        .sync-den { color: #ff4d4d; text-align: center; min-height: 32px; padding: 0 4px; }
+        .sync-line { width: 100%; height: 3px; background-color: #fff; margin: 2px 0; border-radius: 2px; }
+
+        .fx-input-native {
+            width: 100%; font-size: 15px; font-weight: bold; color: #ffff00;
+            background: #000; border: 1px solid #444; padding: 6px 10px; border-radius: 6px;
+            outline: none; box-sizing: border-box; text-align: left; font-family: monospace;
+        }
+
+        /* 2. 直感的な入力インターフェース（分数ビジュアルブロック） */
         .fraction-ui-container {
-            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 8px; border: 1px dashed #444; box-sizing: border-box;
+            display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); 
+            padding: 8px 10px; border-radius: 10px; border: 1px dashed rgba(0,245,212,0.4); margin-bottom: 8px;
         }
-        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 50px; flex-shrink: 0; }
+        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 60px; }
         .fraction-box input {
-            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 14px; padding: 2px 0; border-radius: 4px; box-sizing: border-box;
+            width: 100%; text-align: center; background: #000; color: #fff; border: 1.5px solid #00f5d4; 
+            font-size: 16px; font-weight: bold; padding: 4px 0; border-radius: 6px; outline: none;
         }
+        .fraction-box input:focus { background: #112211; border-color: #ffff00; box-shadow: 0 0 6px #ffff00; }
         .fraction-line { width: 100%; height: 2px; background-color: #00f5d4; margin: 3px 0; }
 
-        .math-x-font { font-family: "Times New Roman", Times, "serif", "Georgia"; font-style: italic; font-weight: bold; color: #ff4d4d; }
+        /* 3. ボタンデザインとレイアウト（拡大・押しやすさ重視） */
+        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+        .btn-pad { 
+            background: #252a28; border: 1px solid #555; color: white; border-radius: 8px; 
+            padding: 12px 0; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.4); touch-action: manipulation; transition: background 0.1s;
+        }
+        .btn-pad:active { background: #00f5d4; color: black; transform: translateY(1px); }
+        .btn-pad-op { background: #1f3a3a; color: #00f5d4; border-color: #00f5d4; font-size: 17px; }
+        .btn-pad-var { background: #3d2b1f; color: #ffb84d; border-color: #ffb84d; font-size: 17px; }
+        .btn-pad-action { background: #117a65; color: #ffffff; border-color: #16a085; }
+        .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; font-size: 13px; }
         
-        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; width: 100%; box-sizing: border-box; }
-        .btn-pad { background: #252525; border: 1px solid #555; color: white; border-radius: 6px; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; }
-        .btn-pad:active { background: #00f5d4; color: black; }
-        .btn-pad-action { background: #554422; color: #ffb84d; border-color: #886633; }
-        .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; }
-        
+        .math-x-font { font-style: italic; font-weight: bold; color: #ff4d4d; }
         .btn-flip-angle {
             background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 2px 6px; 
             font-size: 11px; font-weight: bold; cursor: pointer; margin-left: 8px; vertical-align: middle;
@@ -210,6 +236,7 @@
         </div>
     </div>
     
+    <!-- デフォルト状態で選択・アクティブな手書きボタン -->
     <div class="tool-group" id="group-draw-base">
         <span class="group-label" id="lbl-draw-base">描画</span>
         <div class="group-content">
@@ -217,6 +244,7 @@
         </div>
     </div>
     
+    <!-- 「作図」グループ（デフォルト非表示：math-groupクラスを追加） -->
     <div class="tool-group math-group" id="group-draw">
         <span class="group-label" id="lbl-draw">作図</span>
         <div class="group-content">
@@ -232,6 +260,7 @@
         </div>
     </div>
     
+    <!-- 「探求操作」グループ（デフォルト非表示：math-groupクラスを追加） -->
     <div class="tool-group math-group" id="group-op-integrated">
         <span class="group-label" id="lbl-op-integrated">探求操作</span>
         <div class="group-content">
@@ -246,6 +275,7 @@
         </div>
     </div>
     
+    <!-- 「図形教材」グループ（デフォルト非表示：math-groupクラスを追加） -->
     <div class="tool-group math-group" id="group-presets">
         <span class="group-label" id="lbl-presets">図形教材</span>
         <div class="group-content">
@@ -261,9 +291,11 @@
         </div>
     </div>
     
+    <!-- 管理・履歴・共通を整理統合した1つの「システム」グループ -->
     <div class="tool-group" id="group-system-integrated">
         <span class="group-label" id="lbl-system">システム</span>
         <div class="group-content">
+            <!-- 数学/標準モード切り替えボタン（初期状態は「数学モードへ」） -->
             <button class="btn btn-subjectactive active" id="btnAdvancedToggle" onclick="toggleMathMode()"><span id="txt-adv-mode">📐<br>数学モードへ</span></button>
             <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧼<br>消しゴム</span></button>
             <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
@@ -278,6 +310,7 @@
     </div>
 </div>
 
+<!-- 改善版 関数パレット -->
 <div class="coord-sub-palette" id="coordSubPalette">
     <div class="palette-title" onclick="toggleMinimizePalette()">
         <span id="lbl-sub-palette-title">📊 しきをつくろう！</span>
@@ -296,36 +329,42 @@
                 <label id="lbl-sub-show-num"><input type="checkbox" id="subShowLabels" checked onchange="syncSubSettings()"> すうじ</label>
             </div>
         </div>
-        
-        <div style="margin-top:6px; border-top:1px solid #333; padding-top:6px;">
-            <label id="lbl-sub-expr-head" style="font-weight:bold; color:#00f5d4; display:block; margin-bottom:4px;">📈 グラフのしき (<span class="math-x-font">y</span> = ...)</label>
-            <div class="fx-display-container">
-                <div class="fraction-sync-display">
-                    <span class="sync-label">いまのしき:</span>
-                    <div class="sync-math-view">
-                        <span style="color:#ffff00; margin-right:4px;">y = </span>
-                        <div class="sync-fraction-block" id="syncFracBlock" style="display:none;">
-                            <div class="sync-num" id="syncViewNum"></div>
-                            <div class="sync-line"></div>
-                            <div class="sync-den" id="syncViewDen"></div>
-                        </div>
-                        <span id="syncViewNormalText" style="color:#00f5d4;">0.2</span>
-                        <span class="math-x-font" id="syncViewXText" style="margin-left:2px;">x²</span>
+
+        <div style="margin-top:6px; border-top:1px solid #333; padding-top:8px;">
+            <label id="lbl-sub-expr-head" style="font-weight:bold; color:#00f5d4; display:block; margin-bottom:6px;">📈 グラフのしき (y = ...)</label>
+
+            <!-- 1. 数式表示エリア（教科書体・24pt〜28pt相当） -->
+            <div class="fraction-sync-display">
+                <div class="sync-math-view textbook-font">
+                    <span style="color:#ffff00; margin-right:6px;">y = </span>
+                    <div class="sync-fraction-block" id="syncFracBlock" style="display:none;">
+                        <div class="sync-num" id="syncViewNum"></div>
+                        <div class="sync-line"></div>
+                        <div class="sync-den" id="syncViewDen"></div>
                     </div>
-                </div>
-                <input type="text" id="kidsFormulaInput" class="fx-input-native" value="0.2*x*x" oninput="onNativeFormulaInput()">
-                
-                <div class="fraction-ui-container">
-                    <span style="font-size:11px; color:#aaa;">ぶんすうを入れる:</span>
-                    <div class="fraction-box">
-                        <input type="text" id="fracNumerator" placeholder="上の数" oninput="onFractionFieldInput()">
-                        <div class="fraction-line"></div>
-                        <input type="text" id="fracDenominator" placeholder="下の数" oninput="onFractionFieldInput()">
-                    </div>
-                    <span style="font-size:12px; color:#ffff00; font-weight:bold;" id="lbl-fraction-x-type">x²</span>
-                    <button class="btn-pad" style="padding:4px 8px; font-size:11px; background-color:#117a65;" onclick="applyFractionToFormula()">決定</button>
+                    <span id="syncViewNormalText" style="color:#00f5d4;">0.2</span>
+                    <span class="math-x-font" id="syncViewXText" style="margin-left:4px;">x²</span>
                 </div>
             </div>
+
+            <!-- 直接入力テキストボックス（デバッグ・直接入力用） -->
+            <div class="fx-display-container">
+                <input type="text" id="kidsFormulaInput" class="fx-input-native" value="0.2*x*x" oninput="onNativeFormulaInput()" placeholder="例: 2*x + 1">
+            </div>
+
+            <!-- 2. 分数入力ビジュアルブロック & 係数簡略設定 -->
+            <div class="fraction-ui-container">
+                <span style="font-size:12px; color:#aaa; font-weight:bold;">ぶんすう:</span>
+                <div class="fraction-box">
+                    <input type="text" id="fracNumerator" placeholder="分子" oninput="onFractionFieldInput()">
+                    <div class="fraction-line"></div>
+                    <input type="text" id="fracDenominator" placeholder="分母" oninput="onFractionFieldInput()">
+                </div>
+                <span style="font-size:16px; color:#ffff00; font-weight:bold; margin-left:4px;" id="lbl-fraction-x-type">x²</span>
+                <button class="btn-pad btn-pad-action" style="padding:6px 12px; font-size:12px; margin-left:auto;" onclick="applyFractionToFormula()">適用</button>
+            </div>
+
+            <!-- 3. ボタンデザインとレイアウト（押しやすい大きめのUI） -->
             <div class="kids-pad-grid" id="kidsKeyboardGrid"></div>
         </div>
     </div>
@@ -427,7 +466,6 @@
         requestAnimationFrame(tick);
         drawAll();
     }
-    requestAnimationFrame(tick);
 
     const langDict = {
         ja: {
@@ -548,11 +586,15 @@
         }
     }
 
+    /* =========================================================
+       改善版 関数パレット ロジック処理
+    ========================================================= */
     function onNativeFormulaInput() {
         let val = kidsFormulaInput.value;
         cachedJsFormula = translateKidsToJs(val);
         parseAndSyncFractionDisplay(val);
     }
+    
     function onFractionFieldInput() {
         const num = fracNumerator.value;
         const den = fracDenominator.value;
@@ -567,6 +609,7 @@
         cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
         parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
+
     function parseAndSyncFractionDisplay(str) {
         const match = str.match(/\(([^)]+)\/([^)]+)\)/);
         
@@ -593,30 +636,59 @@
         syncViewXText.style.display = suffix ? 'inline' : 'none';
     }
 
+    /* 拡大版オンスクリーンキーボードの描画 */
     function renderKidsKeyboard() {
-        const container = document.getElementById('kidsKeyboardGrid'); container.innerHTML = '';
+        const container = document.getElementById('kidsKeyboardGrid'); 
+        container.innerHTML = '';
         const keys = [
-            { k: 'x', label: 'x' }, { k: '+', label: '＋' }, { k: '-', label: '－' }, { k: '*', label: '×' }, { k: '/', label: '÷' },
-            { k: '1', label: '1' }, { k: '2', label: '2' }, { k: '3', label: '3' }, { k: '4', label: '4' }, { k: '5', label: '5' },
-            { k: '6', label: '6' }, { k: '7', label: '7' }, { k: '8', label: '8' }, { k: '9', label: '9' }, { k: '0', label: '0' },
-            { k: '.', label: '．' }, { k: '²', label: '²' }, { k: 'BACK', label: currentLang === 'ja'?'戻る':'Back', clear: true }, { k: 'CLEAR', label: currentLang === 'ja'?'消去':'Clear', clear: true }
+            { k: 'FRAC', label: '■/■', cls: 'btn-pad-op' },
+            { k: 'x', label: 'x', cls: 'btn-pad-var' },
+            { k: 'y', label: 'y', cls: 'btn-pad-var' },
+            { k: '+', label: '＋', cls: 'btn-pad-op' },
+            { k: '-', label: '－', cls: 'btn-pad-op' },
+            
+            { k: '1', label: '1' }, { k: '2', label: '2' }, { k: '3', label: '3' }, 
+            { k: '*', label: '×', cls: 'btn-pad-op' },
+            { k: '/', label: '÷', cls: 'btn-pad-op' },
+            
+            { k: '4', label: '4' }, { k: '5', label: '5' }, { k: '6', label: '6' }, 
+            { k: '.', label: '．' },
+            { k: '²', label: 'x²', cls: 'btn-pad-var' },
+            
+            { k: '7', label: '7' }, { k: '8', label: '8' }, { k: '9', label: '9' }, { k: '0', label: '0' },
+            { k: 'BACK', label: currentLang === 'ja'?'⌫ 戻る':'⌫ Back', clear: true }
         ];
+        
         keys.forEach(item => {
-            const btn = document.createElement('button'); btn.className = 'btn-pad';
+            const btn = document.createElement('button'); 
+            btn.className = 'btn-pad';
+            if (item.cls) btn.classList.add(item.cls);
             if (item.clear) btn.classList.add('btn-pad-clear');
-            btn.innerHTML = (item.label === 'x') ? '<span class="math-x-font">x</span>' : item.label;
+            
+            if (item.label === 'x' || item.label === 'y') {
+                btn.innerHTML = `<span class="math-x-font">${item.label}</span>`;
+            } else {
+                btn.innerHTML = item.label;
+            }
+
             btn.onclick = () => {
-                if (item.k === 'CLEAR') { kidsFormulaInput.value = ''; fracNumerator.value = ''; fracDenominator.value = ''; }
-                else if (item.k === 'BACK') { kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); }
-                else if (item.k === '²') { kidsFormulaInput.value += '*x'; }
-                else { kidsFormulaInput.value += item.k; }
+                if (item.k === 'FRAC') {
+                    fracNumerator.focus();
+                } else if (item.k === 'CLEAR') { 
+                    kidsFormulaInput.value = ''; fracNumerator.value = ''; fracDenominator.value = ''; 
+                } else if (item.k === 'BACK') { 
+                    kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); 
+                } else if (item.k === '²') { 
+                    kidsFormulaInput.value += '*x'; 
+                } else { 
+                    kidsFormulaInput.value += item.k; 
+                }
                 cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
                 parseAndSyncFractionDisplay(kidsFormulaInput.value);
             };
             container.appendChild(btn);
         });
     }
-    renderKidsKeyboard();
 
     function applyFractionToFormula() {
         let currentExpr = kidsFormulaInput.value;
@@ -644,7 +716,6 @@
         const oldTh = thicknessSelect.value; thicknessSelect.innerHTML = '';
         sets.thickness.forEach(o => thicknessSelect.add(new Option(o.text, o.value))); if([...thicknessSelect.options].some(o => o.value === oldTh)) thicknessSelect.value = oldTh;
     }
-    updateDropdowns();
 
     function toggleLanguage() {
         currentLang = (currentLang === 'ja') ? 'en' : 'ja';
@@ -668,7 +739,6 @@
     }
 
     function updateInfoMeterInstructions() { measureInstructions.innerText = langDict[currentLang]['inst_' + currentMode] || ""; }
-    updateInfoMeterInstructions();
 
     function changeMode(mode, btnEl) {
         currentMode = mode;
@@ -695,6 +765,8 @@
         coordSubPalette.style.display = (gridType === 4) ? 'block' : 'none';
     }
 
+    function cycleToolbarSize() {}
+    
     function toggleLayout() { const tb = document.getElementById('myToolbar'); layoutState = (layoutState + 1) % 2; if (layoutState === 1) tb.classList.add('tb-vertical'); else tb.classList.remove('tb-vertical'); }
 
     function toScreen(mx, my) { return { x: canvas.width / 2 + mx * baseGridSize * scale + offsetX, y: canvas.height / 2 - my * baseGridSize * scale + offsetY }; }
@@ -1177,6 +1249,42 @@
         ctx.restore();
     }
 
+    function distToSegment(p, v, w) {
+        let l2 = (v.x - w.x)*(v.x - w.x) + (v.y - w.y)*(v.y - w.y);
+        if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+    }
+
+    function executeEraserLogic(cx, cy) {
+        let radius = 22;
+        drawings = drawings.filter(d => {
+            if (d.type === 'freehand') {
+                return !d.pts.some(pt => {
+                    let s = toScreen(pt.x, pt.y);
+                    return Math.hypot(cx - s.x, cy - s.y) < radius;
+                });
+            } else if (['segment', 'line', 'ray', 'vector'].includes(d.type)) {
+                return distToSegment({x: cx, y: cy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) >= radius;
+            } else if (d.type === 'circle') {
+                let p1 = toScreen(d.mX1, d.mY1); let r = Math.hypot(toScreen(d.mX2, d.mY2).x - p1.x, toScreen(d.mX2, d.mY2).y - p1.y);
+                let distToCenter = Math.hypot(cx - p1.x, cy - p1.y);
+                return Math.abs(distToCenter - r) >= radius;
+            } else if (d.type === 'arc') {
+                let p1 = toScreen(d.mX1, d.mY1); let r = Math.hypot(toScreen(d.mX2, d.mY2).x - p1.x, toScreen(d.mX2, d.mY2).y - p1.y);
+                let distToCenter = Math.hypot(cx - p1.x, cy - p1.y);
+                return Math.abs(distToCenter - r) >= radius;
+            }
+            return true;
+        });
+
+        plots = plots.filter(p => {
+            let s = toScreen(p.mx, p.my);
+            return Math.hypot(cx - s.x, cy - s.y) >= radius;
+        });
+    }
+
     function startDrawing(e) {
         if (e.target !== canvas) return; isDrawing = true; const m = toMath(e.clientX, e.clientY);
         dragStartMath = m; liveCurrentMath = m; startX = e.clientX; startY = e.clientY; currentX = e.clientX; currentY = e.clientY;
@@ -1359,116 +1467,125 @@
             drawings.push({ id: generateUniqueId(), type: 'freehand', pts: activeFreehandPoints, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
         }
         else if (['segment', 'line', 'ray', 'vector'].includes(currentMode) && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
-                saveHistory(); const p1Id = getNextLabel(); const p2Id = getNextLabel();
-                plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: m.x, my: m.y, color: currentColor });
-                drawings.push({ id: generateUniqueId(), type: currentMode, mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.1) {
+                saveHistory();
+                let p1 = plots.find(p => Math.hypot(p.mx - dragStartMath.x, p.my - dragStartMath.y) < 0.4);
+                if (!p1) { p1 = { id: getNextLabel(), mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }; plots.push(p1); }
+                let p2 = plots.find(p => Math.hypot(p.mx - m.x, p.my - m.y) < 0.4);
+                if (!p2) { p2 = { id: getNextLabel(), mx: m.x, my: m.y, color: currentColor }; plots.push(p2); }
+                drawings.push({ id: generateUniqueId(), type: currentMode, mX1: p1.mx, mY1: p1.my, mX2: p2.mx, mY2: p2.my, bindP1: p1.id, bindP2: p2.id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             }
         }
-        else if (currentMode === 'compass' && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.2) {
+        else if ((currentMode === 'compass' || currentMode === 'arc') && dragStartMath) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.1) {
                 saveHistory();
-                drawings.push({ id: generateUniqueId(), type: 'circle', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
-            }
-        }
-        else if (currentMode === 'arc' && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.2) {
-                saveHistory();
-                drawings.push({ id: generateUniqueId(), type: 'arc', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, startAngle: 0, endAngle: Math.PI, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+                let p1 = plots.find(p => Math.hypot(p.mx - dragStartMath.x, p.my - dragStartMath.y) < 0.4);
+                if (!p1) { p1 = { id: getNextLabel(), mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }; plots.push(p1); }
+                let type = (currentMode === 'compass') ? 'circle' : 'arc';
+                drawings.push({ id: generateUniqueId(), type: type, mX1: p1.mx, mY1: p1.my, mX2: m.x, mY2: m.y, bindP1: p1.id, startAngle: 0, endAngle: Math.PI, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             }
         }
         else if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLine && dragStartMath) {
             saveHistory();
             let baseAng = Math.atan2(selectedBaseLine.mY2 - selectedBaseLine.mY1, selectedBaseLine.mX2 - selectedBaseLine.mX1);
             let targetAng = (currentMode === 'parallel') ? baseAng : baseAng + Math.PI / 2;
-            let len = Math.hypot(selectedBaseLine.mX2 - selectedBaseLine.mX1, selectedBaseLine.mY2 - selectedBaseLine.mY1);
-            let x2 = dragStartMath.x + len * Math.cos(targetAng);
-            let y2 = dragStartMath.y + len * Math.sin(targetAng);
-            const p1Id = getNextLabel(); const p2Id = getNextLabel();
-            plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: x2, my: y2, color: currentColor });
-            drawings.push({ id: generateUniqueId(), type: 'segment', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: x2, mY2: y2, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            let len = 5;
+            let p1 = { id: getNextLabel(), mx: m.x - Math.cos(targetAng)*len, my: m.y - Math.sin(targetAng)*len, color: currentColor };
+            let p2 = { id: getNextLabel(), mx: m.x + Math.cos(targetAng)*len, my: m.y + Math.sin(targetAng)*len, color: currentColor };
+            plots.push(p1, p2);
+            drawings.push({ id: generateUniqueId(), type: 'line', mX1: p1.mx, mY1: p1.my, mX2: p2.mx, mY2: p2.my, bindP1: p1.id, bindP2: p2.id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             selectedBaseLine = null;
         }
-        else if (currentMode === 'set-bound' && grabbedPlot) {
-            let hitC = null;
-            for(let d of drawings) {
-                if(d.type === 'circle' && Math.hypot(m.x - d.mX1, m.y - d.mY1) < Math.hypot(d.mX2 - d.mX1, d.mY2 - d.mY1) + 0.5) {
-                    hitC = d; break;
-                }
+        else if (currentMode === 'set-bound' && dragStartMath) {
+            let targetPlot = plots.find(p => Math.hypot(toScreen(p.mx, p.my).x - startX, toScreen(p.mx, p.my).y - startY) < 22);
+            if (targetPlot) {
+                let targetCircle = drawings.find(d => d.type === 'circle' && Math.abs(Math.hypot(toScreen(d.mX1, d.mY1).x - e.clientX, toScreen(d.mX1, d.mY1).y - e.clientY) - Math.hypot(toScreen(d.mX2, d.mY2).x - toScreen(d.mX1, d.mY1).x, toScreen(d.mX2, d.mY2).y - toScreen(d.mX1, d.mY1).y)) < 20);
+                if (targetCircle) { saveHistory(); targetPlot.boundCircleId = targetCircle.id; }
             }
-            if(hitC) { saveHistory(); grabbedPlot.boundCircleId = hitC.id; }
         }
-        else if (currentMode === 'lasso') {
-            if (lassoPoints.length > 2) {
-                selectedPlotIds = []; selectedDrawingIds = [];
-                plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
-                drawings.forEach(d => {
-                    let s1 = toScreen(d.mX1, d.mY1);
-                    if (isPointInPolygon(s1, lassoPoints)) selectedDrawingIds.push(d.id);
-                });
-            }
+        else if (currentMode === 'lasso' && lassoPoints.length > 2) {
+            selectedPlotIds = []; selectedDrawingIds = [];
+            plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
+            drawings.forEach(d => {
+                let s1 = toScreen(d.mX1, d.mY1);
+                if (isPointInPolygon(s1, lassoPoints)) selectedDrawingIds.push(d.id);
+            });
             lassoPoints = [];
         }
-        grabbedPlot = null; grabbedArcInfo = null; eraserPath = [];
+        else if (currentMode === 'eraser') { eraserPath = []; }
+
+        dragStartMath = null;
     }
 
-    function distToSegment(p, p1, p2) {
-        let l2 = (p2.x - p1.x)**2 + (p2.y - p1.y)**2;
-        if (l2 === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
-        let t = ((p.x - p1.x)*(p2.x - p1.x) + (p.y - p1.y)*(p2.y - p1.y)) / l2;
-        t = Math.max(0, Math.min(1, t));
-        return Math.hypot(p.x - (p1.x + t*(p2.x - p1.x)), p.y - (p1.y + t*(p2.y - p1.y)));
-    }
-
-    function isPointInPolygon(pt, polygon) {
-        let n = polygon.length, inside = false;
-        for (let i = 0, j = n - 1; i < n; j = i++) {
-            let xi = polygon[i].x, yi = polygon[i].y, xj = polygon[j].x, yj = polygon[j].y;
-            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi)*(pt.y - yi)/(yj - yi) + xi);
+    function isPointInPolygon(pt, poly) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            let xi = poly[i].x, yi = poly[i].y;
+            let xj = poly[j].x, yj = poly[j].y;
+            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
             if (intersect) inside = !inside;
         }
         return inside;
     }
 
-    function executeEraserLogic(sx, sy) {
-        let m = toMath(sx, sy);
-        drawings = drawings.filter(d => {
-            if (d.type === 'freehand') {
-                d.pts = d.pts.filter(pt => Math.hypot(toScreen(pt.x, pt.y).x - sx, toScreen(pt.x, pt.y).y - sy) > 25);
-                return d.pts.length > 2;
-            } else {
-                return distToSegment({x: sx, y: sy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) > 22;
-            }
-        });
-        plots = plots.filter(p => Math.hypot(toScreen(p.mx, p.my).x - sx, toScreen(p.mx, p.my).y - sy) > 22);
-    }
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
 
-    canvas.addEventListener('pointerdown', startDrawing);
-    canvas.addEventListener('pointermove', draw);
-    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('touchstart', e => { if (e.touches.length === 1) startDrawing(e.touches[0]); }, { passive: false });
+    canvas.addEventListener('touchmove', e => { if (e.touches.length === 1) { draw(e.touches[0]); e.preventDefault(); } }, { passive: false });
+    canvas.addEventListener('touchend', e => { stopDrawing(e.changedTouches[0]); });
+
+    window.addEventListener('wheel', e => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            let zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+            scale = Math.max(0.3, Math.min(5.0, scale * zoomFactor));
+        }
+    }, { passive: false });
+
+    const handle = document.getElementById('myToolbarHandle');
+    const tb = document.getElementById('myToolbar');
+    let isDraggingTb = false, tbOffsetX = 0, tbOffsetY = 0;
+
+    handle.addEventListener('mousedown', e => { isDraggingTb = true; tbOffsetX = e.clientX - tb.offsetLeft; tbOffsetY = e.clientY - tb.offsetTop; });
+    window.addEventListener('mousemove', e => { if (isDraggingTb) { tb.style.left = (e.clientX - tbOffsetX) + 'px'; tb.style.top = (e.clientY - tbOffsetY) + 'px'; } });
+    window.addEventListener('mouseup', () => { isDraggingTb = false; });
+
+    handle.addEventListener('touchstart', e => { if (e.touches.length === 1) { isDraggingTb = true; tbOffsetX = e.touches[0].clientX - tb.offsetLeft; tbOffsetY = e.touches[0].clientY - tb.offsetTop; } }, { passive: false });
+    window.addEventListener('touchmove', e => { if (isDraggingTb && e.touches.length === 1) { tb.style.left = (e.touches[0].clientX - tbOffsetX) + 'px'; tb.style.top = (e.touches[0].clientY - tbOffsetY) + 'px'; } }, { passive: false });
+    window.addEventListener('touchend', () => { isDraggingTb = false; });
 
     function saveData() {
-        const data = { drawings, plots, activeMeasures, groups, labelIndex, gridType };
-        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'blackboard_data.json'; a.click();
+        const data = { drawings, plots, activeMeasures, groups, labelIndex, gridType, cachedJsFormula, kidsFormulaInputValue: kidsFormulaInput.value };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackboard_data.json'; a.click();
     }
     function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
     function loadData(input) {
         const file = input.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             try {
                 const data = JSON.parse(e.target.result);
                 saveHistory();
-                drawings = data.drawings || []; plots = data.plots || [];
-                activeMeasures = data.activeMeasures || []; groups = data.groups || [];
+                drawings = data.drawings || []; plots = data.plots || []; activeMeasures = data.activeMeasures || []; groups = data.groups || [];
                 labelIndex = data.labelIndex || 0; gridType = data.gridType || 1;
+                if (data.kidsFormulaInputValue) {
+                    kidsFormulaInput.value = data.kidsFormulaInputValue;
+                    cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+                    parseAndSyncFractionDisplay(kidsFormulaInput.value);
+                }
                 cycleGridTextOnly();
-            } catch(err) { alert('Invalid JSON file.'); }
+            } catch(err) { alert('ファイルの読み込みに失敗しました。'); }
         };
         reader.readAsText(file);
     }
+
+    updateDropdowns();
+    renderKidsKeyboard();
+    updateInfoMeterInstructions();
+    tick();
 </script>
 </body>
 </html>
