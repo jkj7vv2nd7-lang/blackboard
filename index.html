@@ -124,52 +124,51 @@
         }
         .measure-list { max-height: 120px; overflow-y: auto; margin: 0; padding-left: 15px; color: #ffff00; font-family: monospace; font-size: 13px; font-weight: bold; }
 
-        /* 関数パレット (文字サイズを大きく見やすく調整) */
+        /* 関数パレット (修正済み) */
         .coord-sub-palette {
             display: none; position: absolute; bottom: 20px; left: 20px; z-index: 95;
             background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
-            padding: 14px; width: 380px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
-            font-size: 14px; color: white;
+            padding: 12px; width: 350px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+            font-size: 12px; color: white; box-sizing: border-box;
         }
-        .palette-title { font-weight: bold; font-size: 15px; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 10px; cursor: pointer;}
-        .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 6px; font-size: 13px; }
-        .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 6px; font-size: 13px; }
+        .palette-title { font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 8px; cursor: pointer; }
+        .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 4px; }
+        .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 4px; font-size: 12px; }
         
-        .fx-display-container { position: relative; width: 100%; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;}
+        .fx-display-container { position: relative; width: 100%; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
         .fx-input-native {
-            width: 100%; font-size: 18px; font-weight: bold; color: #ffff00;
-            background: #000; border: 2px solid #00f5d4; padding: 10px; border-radius: 8px;
+            width: 100%; font-size: 16px; font-weight: bold; color: #ffff00;
+            background: #000; border: 2px solid #00f5d4; padding: 8px; border-radius: 8px;
             outline: none; box-sizing: border-box; text-align: left; font-family: monospace;
         }
         
         .fraction-sync-display {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 8px; border-radius: 6px; margin-bottom: 4px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 6px; border-radius: 6px; margin-bottom: 2px; box-sizing: border-box;
         }
-        .sync-label { font-size: 13px; color: #aaa; }
-        .sync-math-view { display: inline-flex; align-items: center; font-size: 20px; font-weight: bold; font-family: monospace; }
-        .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 6px; min-width: 30px; }
-        .sync-num { color: #00f5d4; text-align: center; min-height: 20px; font-size: 18px; }
-        .sync-den { color: #ff4d4d; text-align: center; min-height: 20px; font-size: 18px; }
+        .sync-label { font-size: 11px; color: #888; }
+        .sync-math-view { display: inline-flex; align-items: center; font-size: 18px; font-weight: bold; font-family: monospace; }
+        .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 4px; min-width: 25px; }
+        .sync-num { color: #00f5d4; text-align: center; min-height: 18px; }
+        .sync-den { color: #ff4d4d; text-align: center; min-height: 18px; }
         .sync-line { width: 100%; height: 2px; background-color: #fff; margin: 2px 0; }
         
         .fraction-ui-container {
-            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; border: 1px dashed #444; font-size: 13px;
+            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 8px; border: 1px dashed #444; box-sizing: border-box;
         }
-        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 60px; }
+        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 50px; flex-shrink: 0; }
         .fraction-box input {
-            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 16px; padding: 4px 0; border-radius: 4px;
+            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 14px; padding: 2px 0; border-radius: 4px; box-sizing: border-box;
         }
         .fraction-line { width: 100%; height: 2px; background-color: #00f5d4; margin: 3px 0; }
 
-        /* 教科書体の見栄えを強化 */
-        .math-x-font { font-family: "Kyokasho", "BiauKai", "STKaiti", "Times New Roman", Times, "serif", "Georgia"; font-style: italic; font-weight: bold; color: #ff4d4d; }
+        .math-x-font { font-family: "Times New Roman", Times, "serif", "Georgia"; font-style: italic; font-weight: bold; color: #ff4d4d; }
         
-        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
-        .btn-pad { background: #252525; border: 1px solid #555; color: white; border-radius: 6px; padding: 12px 0; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; }
+        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; width: 100%; box-sizing: border-box; }
+        .btn-pad { background: #252525; border: 1px solid #555; color: white; border-radius: 6px; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; }
         .btn-pad:active { background: #00f5d4; color: black; }
         .btn-pad-action { background: #554422; color: #ffb84d; border-color: #886633; }
-        .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; font-size: 14px; }
+        .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; }
         
         .btn-flip-angle {
             background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 2px 6px; 
@@ -299,12 +298,12 @@
         </div>
         
         <div style="margin-top:6px; border-top:1px solid #333; padding-top:6px;">
-            <label id="lbl-sub-expr-head" style="font-weight:bold; color:#00f5d4; display:block; margin-bottom:6px;">📈 グラフのしき (<span class="math-x-font">y</span> = ...)</label>
+            <label id="lbl-sub-expr-head" style="font-weight:bold; color:#00f5d4; display:block; margin-bottom:4px;">📈 グラフのしき (<span class="math-x-font">y</span> = ...)</label>
             <div class="fx-display-container">
                 <div class="fraction-sync-display">
                     <span class="sync-label">いまのしき:</span>
                     <div class="sync-math-view">
-                        <span style="color:#ffff00; margin-right:4px;" class="math-x-font">y = </span>
+                        <span style="color:#ffff00; margin-right:4px;">y = </span>
                         <div class="sync-fraction-block" id="syncFracBlock" style="display:none;">
                             <div class="sync-num" id="syncViewNum"></div>
                             <div class="sync-line"></div>
@@ -317,14 +316,14 @@
                 <input type="text" id="kidsFormulaInput" class="fx-input-native" value="0.2*x*x" oninput="onNativeFormulaInput()">
                 
                 <div class="fraction-ui-container">
-                    <span style="font-size:12px; color:#aaa;">ぶんすうを入れる:</span>
+                    <span style="font-size:11px; color:#aaa;">ぶんすうを入れる:</span>
                     <div class="fraction-box">
                         <input type="text" id="fracNumerator" placeholder="上の数" oninput="onFractionFieldInput()">
                         <div class="fraction-line"></div>
                         <input type="text" id="fracDenominator" placeholder="下の数" oninput="onFractionFieldInput()">
                     </div>
-                    <span style="font-size:13px; color:#ffff00; font-weight:bold;" id="lbl-fraction-x-type" class="math-x-font">x²</span>
-                    <button class="btn-pad" style="padding:6px 12px; font-size:13px; background-color:#117a65;" onclick="applyFractionToFormula()">決定</button>
+                    <span style="font-size:12px; color:#ffff00; font-weight:bold;" id="lbl-fraction-x-type">x²</span>
+                    <button class="btn-pad" style="padding:4px 8px; font-size:11px; background-color:#117a65;" onclick="applyFractionToFormula()">決定</button>
                 </div>
             </div>
             <div class="kids-pad-grid" id="kidsKeyboardGrid"></div>
@@ -428,6 +427,7 @@
         requestAnimationFrame(tick);
         drawAll();
     }
+    requestAnimationFrame(tick);
 
     const langDict = {
         ja: {
@@ -553,29 +553,20 @@
         cachedJsFormula = translateKidsToJs(val);
         parseAndSyncFractionDisplay(val);
     }
-
     function onFractionFieldInput() {
-        updateFractionAndFormula();
-    }
-
-    function updateFractionAndFormula() {
-        const num = fracNumerator.value.trim();
-        const den = fracDenominator.value.trim();
+        const num = fracNumerator.value;
+        const den = fracDenominator.value;
         let currentExpr = kidsFormulaInput.value;
-        let xPart = "*x*x";
+        let xPart = " * x * x";
         if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) {
-            xPart = "*x";
+            xPart = " * x";
         } else if (!currentExpr.includes('x')) {
             xPart = "";
         }
-        
-        if (num !== '' || den !== '') {
-            kidsFormulaInput.value = `(${num || '?'}/${den || '?'})${xPart ? '*' + xPart.replace(/^\*/, '') : ''}`;
-        }
+        kidsFormulaInput.value = (num || den) ? `(${num || '?'}/${den || '?'})${xPart}` : `0.2${xPart}`;
         cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
         parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
-
     function parseAndSyncFractionDisplay(str) {
         const match = str.match(/\(([^)]+)\/([^)]+)\)/);
         
@@ -615,36 +606,25 @@
             if (item.clear) btn.classList.add('btn-pad-clear');
             btn.innerHTML = (item.label === 'x') ? '<span class="math-x-font">x</span>' : item.label;
             btn.onclick = () => {
-                if (item.k === 'CLEAR') { 
-                    kidsFormulaInput.value = ''; 
-                    fracNumerator.value = ''; 
-                    fracDenominator.value = ''; 
-                } else if (item.k === 'BACK') { 
-                    kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); 
-                } else if (item.k === '²') { 
-                    kidsFormulaInput.value += '*x*x'; 
-                } else { 
-                    kidsFormulaInput.value += item.k; 
-                }
+                if (item.k === 'CLEAR') { kidsFormulaInput.value = ''; fracNumerator.value = ''; fracDenominator.value = ''; }
+                else if (item.k === 'BACK') { kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); }
+                else if (item.k === '²') { kidsFormulaInput.value += '*x'; }
+                else { kidsFormulaInput.value += item.k; }
                 cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
                 parseAndSyncFractionDisplay(kidsFormulaInput.value);
             };
             container.appendChild(btn);
         });
     }
+    renderKidsKeyboard();
 
     function applyFractionToFormula() {
-        const num = fracNumerator.value.trim() || '?';
-        const den = fracDenominator.value.trim() || '?';
         let currentExpr = kidsFormulaInput.value;
-        let suffix = "*x*x";
-        if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) {
-            suffix = "*x";
-        } else if (!currentExpr.includes('x')) {
-            suffix = "";
-        }
+        let suffix = " * x * x";
+        if (currentExpr.includes('x') && !currentExpr.includes('x*x') && !currentExpr.includes('x²')) suffix = " * x";
+        if (!currentExpr.includes('x')) suffix = "";
         
-        kidsFormulaInput.value = `(${num}/${den})${suffix ? '*' + suffix.replace(/^\*/, '') : ''}`;
+        kidsFormulaInput.value = `(${fracNumerator.value || '?'}/${fracDenominator.value || '?'})${suffix}`;
         cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
         parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
@@ -652,17 +632,8 @@
     function translateKidsToJs(rawStr) { 
         return rawStr.replace(/×/g, '*').replace(/÷/g, '/').replace(/－/g, '-').replace(/＋/g, '+').replace(/x²/g, '(x*x)').replace(/x/g, 'x'); 
     }
-    
-    function syncSubSettings() { 
-        coordStepUnit = Number(document.getElementById('subStepUnit').value); 
-        showCoordLabels = document.getElementById('subShowLabels').checked; 
-    }
-    
-    function toggleMinimizePalette() { 
-        isPaletteMinimized = !isPaletteMinimized; 
-        document.getElementById('paletteContent').style.display = isPaletteMinimized ? 'none' : 'block'; 
-        document.getElementById('paletteMinIcon').innerText = isPaletteMinimized ? '▲' : '▼'; 
-    }
+    function syncSubSettings() { coordStepUnit = Number(document.getElementById('subStepUnit').value); showCoordLabels = document.getElementById('subShowLabels').checked; }
+    function toggleMinimizePalette() { isPaletteMinimized = !isPaletteMinimized; document.getElementById('paletteContent').style.display = isPaletteMinimized ? 'none' : 'block'; document.getElementById('paletteMinIcon').innerText = isPaletteMinimized ? '▲' : '▼'; }
 
     function updateDropdowns() {
         const sets = selectOptions[currentLang];
@@ -673,6 +644,7 @@
         const oldTh = thicknessSelect.value; thicknessSelect.innerHTML = '';
         sets.thickness.forEach(o => thicknessSelect.add(new Option(o.text, o.value))); if([...thicknessSelect.options].some(o => o.value === oldTh)) thicknessSelect.value = oldTh;
     }
+    updateDropdowns();
 
     function toggleLanguage() {
         currentLang = (currentLang === 'ja') ? 'en' : 'ja';
@@ -696,6 +668,7 @@
     }
 
     function updateInfoMeterInstructions() { measureInstructions.innerText = langDict[currentLang]['inst_' + currentMode] || ""; }
+    updateInfoMeterInstructions();
 
     function changeMode(mode, btnEl) {
         currentMode = mode;
@@ -1383,105 +1356,102 @@
         if (!isDrawing) return; isDrawing = false; const m = toMath(e.clientX, e.clientY);
         if (currentMode === 'free') {
             let liveIdx = drawings.findIndex(d => d.id === 'live_free'); if (liveIdx !== -1) drawings.splice(liveIdx, 1);
-            if (activeFreehandPoints.length > 1) {
-                drawings.push({ id: generateUniqueId(), type: 'freehand', pts: [...activeFreehandPoints], color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
-            }
-            activeFreehandPoints = [];
+            drawings.push({ id: generateUniqueId(), type: 'freehand', pts: activeFreehandPoints, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
         }
         else if (['segment', 'line', 'ray', 'vector'].includes(currentMode) && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.3) {
-                saveHistory();
-                let p1Id = null, p2Id = null;
-                for (let p of plots) {
-                    if (Math.hypot(toScreen(p.mx, p.my).x - toScreen(dragStartMath.x, dragStartMath.y).x, toScreen(p.mx, p.my).y - toScreen(dragStartMath.x, dragStartMath.y).y) < 22) p1Id = p.id;
-                    if (Math.hypot(toScreen(p.mx, p.my).x - e.clientX, toScreen(p.mx, p.my).y - e.clientY) < 22) p2Id = p.id;
-                }
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.15) {
+                saveHistory(); const p1Id = getNextLabel(); const p2Id = getNextLabel();
+                plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: m.x, my: m.y, color: currentColor });
                 drawings.push({ id: generateUniqueId(), type: currentMode, mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             }
         }
         else if (currentMode === 'compass' && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.3) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.2) {
                 saveHistory();
                 drawings.push({ id: generateUniqueId(), type: 'circle', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             }
         }
         else if (currentMode === 'arc' && dragStartMath) {
-            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.3) {
+            if (Math.hypot(m.x - dragStartMath.x, m.y - dragStartMath.y) > 0.2) {
                 saveHistory();
                 drawings.push({ id: generateUniqueId(), type: 'arc', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: m.x, mY2: m.y, startAngle: 0, endAngle: Math.PI, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
             }
         }
-        else if (currentMode === 'parallel' && selectedBaseLine && dragStartMath) {
+        else if (['parallel', 'perpend'].includes(currentMode) && selectedBaseLine && dragStartMath) {
             saveHistory();
             let baseAng = Math.atan2(selectedBaseLine.mY2 - selectedBaseLine.mY1, selectedBaseLine.mX2 - selectedBaseLine.mX1);
+            let targetAng = (currentMode === 'parallel') ? baseAng : baseAng + Math.PI / 2;
             let len = Math.hypot(selectedBaseLine.mX2 - selectedBaseLine.mX1, selectedBaseLine.mY2 - selectedBaseLine.mY1);
-            drawings.push({ id: generateUniqueId(), type: 'segment', mX1: m.x, mY1: m.y, mX2: m.x + len*Math.cos(baseAng), mY2: m.y + len*Math.sin(baseAng), color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            let x2 = dragStartMath.x + len * Math.cos(targetAng);
+            let y2 = dragStartMath.y + len * Math.sin(targetAng);
+            const p1Id = getNextLabel(); const p2Id = getNextLabel();
+            plots.push({ id: p1Id, mx: dragStartMath.x, my: dragStartMath.y, color: currentColor }, { id: p2Id, mx: x2, my: y2, color: currentColor });
+            drawings.push({ id: generateUniqueId(), type: 'segment', mX1: dragStartMath.x, mY1: dragStartMath.y, mX2: x2, mY2: y2, bindP1: p1Id, bindP2: p2Id, color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+            selectedBaseLine = null;
         }
-        else if (currentMode === 'perpend' && selectedBaseLine && dragStartMath) {
-            saveHistory();
-            let baseAng = Math.atan2(selectedBaseLine.mY2 - selectedBaseLine.mY1, selectedBaseLine.mX2 - selectedBaseLine.mX1);
-            let targetAng = baseAng + Math.PI / 2;
-            let len = Math.hypot(selectedBaseLine.mX2 - selectedBaseLine.mX1, selectedBaseLine.mY2 - selectedBaseLine.mY1);
-            drawings.push({ id: generateUniqueId(), type: 'segment', mX1: m.x, mY1: m.y, mX2: m.x + len*Math.cos(targetAng), mY2: m.y + len*Math.sin(targetAng), color: currentColor, thickness: currentThickness, penType: currentPenType, lineStyle: currentLineStyle });
+        else if (currentMode === 'set-bound' && grabbedPlot) {
+            let hitC = null;
+            for(let d of drawings) {
+                if(d.type === 'circle' && Math.hypot(m.x - d.mX1, m.y - d.mY1) < Math.hypot(d.mX2 - d.mX1, d.mY2 - d.mY1) + 0.5) {
+                    hitC = d; break;
+                }
+            }
+            if(hitC) { saveHistory(); grabbedPlot.boundCircleId = hitC.id; }
         }
-        else if (currentMode === 'lasso' && lassoPoints.length > 2) {
-            selectedPlotIds = []; selectedDrawingIds = [];
-            plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
-            drawings.forEach(d => {
-                let pt = toScreen(d.mX1, d.mY1);
-                if (isPointInPolygon(pt, lassoPoints)) selectedDrawingIds.push(d.id);
-            });
+        else if (currentMode === 'lasso') {
+            if (lassoPoints.length > 2) {
+                selectedPlotIds = []; selectedDrawingIds = [];
+                plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
+                drawings.forEach(d => {
+                    let s1 = toScreen(d.mX1, d.mY1);
+                    if (isPointInPolygon(s1, lassoPoints)) selectedDrawingIds.push(d.id);
+                });
+            }
             lassoPoints = [];
         }
-        dragStartMath = null; grabbedPlot = null; grabbedArcInfo = null; eraserPath = [];
+        grabbedPlot = null; grabbedArcInfo = null; eraserPath = [];
     }
 
     function distToSegment(p, p1, p2) {
-        let l2 = Math.hypot(p2.x - p1.x, p2.y - p1.y); if (l2 === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
-        let t = ((p.x - p1.x) * (p2.x - p1.x) + (p.y - p1.y) * (p2.y - p1.y)) / (l2 * l2);
+        let l2 = (p2.x - p1.x)**2 + (p2.y - p1.y)**2;
+        if (l2 === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
+        let t = ((p.x - p1.x)*(p2.x - p1.x) + (p.y - p1.y)*(p2.y - p1.y)) / l2;
         t = Math.max(0, Math.min(1, t));
-        return Math.hypot(p.x - (p1.x + t * (p2.x - p1.x)), p.y - (p1.y + t * (p2.y - p1.y)));
+        return Math.hypot(p.x - (p1.x + t*(p2.x - p1.x)), p.y - (p1.y + t*(p2.y - p1.y)));
     }
 
     function isPointInPolygon(pt, polygon) {
-        let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            let xi = polygon[i].x, yi = polygon[i].y;
-            let xj = polygon[j].x, yj = polygon[j].y;
-            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+        let n = polygon.length, inside = false;
+        for (let i = 0, j = n - 1; i < n; j = i++) {
+            let xi = polygon[i].x, yi = polygon[i].y, xj = polygon[j].x, yj = polygon[j].y;
+            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi)*(pt.y - yi)/(yj - yi) + xi);
             if (intersect) inside = !inside;
         }
         return inside;
     }
 
     function executeEraserLogic(sx, sy) {
-        plots = plots.filter(p => Math.hypot(sx - toScreen(p.mx, p.my).x, sy - toScreen(p.mx, p.my).y) > 24);
+        let m = toMath(sx, sy);
         drawings = drawings.filter(d => {
             if (d.type === 'freehand') {
-                d.pts = d.pts.filter(pt => Math.hypot(sx - toScreen(pt.x, pt.y).x, sy - toScreen(pt.x, pt.y).y) > 25);
-                return d.pts.length > 1;
+                d.pts = d.pts.filter(pt => Math.hypot(toScreen(pt.x, pt.y).x - sx, toScreen(pt.x, pt.y).y - sy) > 25);
+                return d.pts.length > 2;
+            } else {
+                return distToSegment({x: sx, y: sy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) > 22;
             }
-            return distToSegment({x: sx, y: sy}, toScreen(d.mX1, d.mY1), toScreen(d.mX2, d.mY2)) > 22;
         });
-        activeMeasures = activeMeasures.filter(m => {
-            if (m.type === 'len') {
-                let p1 = plots.find(p => p.id === m.p1); let p2 = plots.find(p => p.id === m.p2);
-                return p1 && p2;
-            }
-            if (m.type === 'ang') {
-                let p1 = plots.find(p => p.id === m.p1); let p2 = plots.find(p => p.id === m.p2); let p3 = plots.find(p => p.id === m.p3);
-                return p1 && p2 && p3;
-            }
-            return true;
-        });
+        plots = plots.filter(p => Math.hypot(toScreen(p.mx, p.my).x - sx, toScreen(p.mx, p.my).y - sy) > 22);
     }
 
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+
     function saveData() {
-        const state = { drawings, plots, activeMeasures, groups, labelIndex, gridType, currentLang };
-        const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const data = { drawings, plots, activeMeasures, groups, labelIndex, gridType };
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = 'blackboard_data.json'; a.click();
-        URL.revokeObjectURL(url);
     }
     function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
     function loadData(input) {
@@ -1493,35 +1463,12 @@
                 saveHistory();
                 drawings = data.drawings || []; plots = data.plots || [];
                 activeMeasures = data.activeMeasures || []; groups = data.groups || [];
-                labelIndex = data.labelIndex || 0; gridType = data.gridType !== undefined ? data.gridType : 1;
+                labelIndex = data.labelIndex || 0; gridType = data.gridType || 1;
                 cycleGridTextOnly();
-            } catch(err) { alert('JSONの読み込みに失敗しました。'); }
+            } catch(err) { alert('Invalid JSON file.'); }
         };
-        reader.readAsText(file); input.value = '';
+        reader.readAsText(file);
     }
-
-    canvas.addEventListener('pointerdown', startDrawing);
-    canvas.addEventListener('pointermove', draw);
-    canvas.addEventListener('pointerup', stopDrawing);
-    canvas.addEventListener('pointercancel', stopDrawing);
-
-    const toolbar = document.getElementById('myToolbar');
-    const handle = document.getElementById('myToolbarHandle');
-    let isDraggingToolbar = false, tbStartX = 0, tbStartY = 0;
-    
-    handle.addEventListener('pointerdown', (e) => {
-        isDraggingToolbar = true; tbStartX = e.clientX - toolbar.offsetLeft; tbStartY = e.clientY - toolbar.offsetTop;
-        handle.setPointerCapture(e.pointerId); e.stopPropagation();
-    });
-    handle.addEventListener('pointermove', (e) => {
-        if (!isDraggingToolbar) return;
-        toolbar.style.left = (e.clientX - tbStartX) + 'px'; toolbar.style.top = (e.clientY - tbStartY) + 'px';
-    });
-    handle.addEventListener('pointerup', (e) => { isDraggingToolbar = false; });
-
-    updateDropdowns(); renderKidsKeyboard(); updateInfoMeterInstructions();
-    cycleGridTextOnly();
-    requestAnimationFrame(tick);
 </script>
 </body>
 </html>
