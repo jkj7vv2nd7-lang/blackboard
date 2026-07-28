@@ -127,15 +127,15 @@
         /* 関数パレット */
         .coord-sub-palette {
             display: none; position: absolute; bottom: 20px; left: 20px; z-index: 95;
-            background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 14px;
-            padding: 12px; width: 350px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+            background-color: rgba(10, 12, 10, 0.98); border: 2px solid #00f5d4; border-radius: 16px;
+            padding: 14px; width: 360px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
             font-size: 12px; color: white;
         }
-        .palette-title { font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 8px; cursor: pointer;}
+        .palette-title { font-weight: bold; color: #00f5d4; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 8px; cursor: pointer;}
         .palette-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 4px; }
         .palette-input { background: #050505; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 4px; font-size: 12px; }
         
-        .fx-display-container { position: relative; width: 100%; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px;}
+        .fx-display-container { position: relative; width: 100%; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;}
         .fx-input-native {
             width: 100%; font-size: 16px; font-weight: bold; color: #ffff00;
             background: #000; border: 2px solid #00f5d4; padding: 8px; border-radius: 8px;
@@ -144,9 +144,9 @@
         
         .fraction-sync-display {
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 6px; border-radius: 6px; margin-bottom: 2px;
+            background: rgba(0,0,0,0.5); border: 1px solid #2a3a30; padding: 6px; border-radius: 8px; margin-bottom: 2px;
         }
-        .sync-label { font-size: 11px; color: #888; }
+        .sync-label { font-size: 11px; color: #aaa; }
         .sync-math-view { display: inline-flex; align-items: center; font-size: 18px; font-weight: bold; font-family: monospace; }
         .sync-fraction-block { display: inline-flex; flex-direction: column; align-items: center; padding: 0 4px; min-width: 25px; }
         .sync-num { color: #00f5d4; text-align: center; min-height: 18px; }
@@ -154,21 +154,51 @@
         .sync-line { width: 100%; height: 2px; background-color: #fff; margin: 2px 0; }
         
         .fraction-ui-container {
-            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 8px; border: 1px dashed #444;
+            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; border: 1px dashed #444;
         }
-        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 50px; }
+        .fraction-box { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; width: 55px; }
         .fraction-box input {
-            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 14px; padding: 2px 0; border-radius: 4px;
+            width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #00f5d4; font-size: 13px; padding: 2px 0; border-radius: 4px;
         }
         .fraction-line { width: 100%; height: 2px; background-color: #00f5d4; margin: 3px 0; }
 
         .math-x-font { font-family: "Times New Roman", Times, "serif", "Georgia"; font-style: italic; font-weight: bold; color: #ff4d4d; }
         
-        .kids-pad-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; }
-        .btn-pad { background: #252525; border: 1px solid #555; color: white; border-radius: 6px; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; }
-        .btn-pad:active { background: #00f5d4; color: black; }
-        .btn-pad-action { background: #554422; color: #ffb84d; border-color: #886633; }
+        /* 改善版キーパッドのスタイル */
+        .kids-pad-grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 5px; 
+            margin-top: 8px; 
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #222;
+        }
+        .btn-pad { 
+            background: #2a2a2a; 
+            border: 1px solid #444; 
+            color: #ffffff; 
+            border-radius: 6px; 
+            padding: 9px 0; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            user-select: none;
+            transition: background 0.1s, transform 0.05s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .btn-pad:active { 
+            background: #00f5d4 !important; 
+            color: #000 !important; 
+            transform: scale(0.95);
+        }
+        .btn-pad-var { background: #1a3a4a; color: #ff9f43; border-color: #2e5b70; font-size: 14px; }
+        .btn-pad-op { background: #3a2e1a; color: #ffd166; border-color: #5c4828; font-size: 14px; }
+        .btn-pad-action { background: #117a65; color: #ffffff; border-color: #16a085; }
         .btn-pad-clear { background: #552222; color: #ff6666; border-color: #883333; }
+        .btn-pad-back { background: #4a3800; color: #ffcc00; border-color: #775800; }
         
         .btn-flip-angle {
             background: #ff4d4d; color: black; border: none; border-radius: 4px; padding: 2px 6px; 
@@ -270,7 +300,7 @@
         <span class="group-label" id="lbl-system">システム</span>
         <div class="group-content">
             <!-- 数学/標準モード切り替えボタン（初期状態は「数学モードへ」） -->
-            <button class="btn btn-subjectactive active" id="btnAdvancedToggle" onclick="toggleMathMode()"><span id="txt-adv-mode">📐<br>数学モードへ</span></button>
+            <button class="btn btn-subject active" id="btnAdvancedToggle" onclick="toggleMathMode()"><span id="txt-adv-mode">📐<br>数学モードへ</span></button>
             <button class="btn btn-eraser" id="btn-eraser" onclick="changeMode('eraser', this)"><span id="txt-eraser">🧼<br>消しゴム</span></button>
             <button class="btn btn-eraser" style="background-color: #922b21;" onclick="clearBlackboard()"><span id="txt-clear">❌<br>全消去</span></button>
             <button class="btn btn-history" onclick="handleUndo()"><span id="txt-undo">↩️<br>元に戻す</span></button>
@@ -322,16 +352,18 @@
                 <input type="text" id="kidsFormulaInput" class="fx-input-native" value="0.2*x*x" oninput="onNativeFormulaInput()">
                 
                 <div class="fraction-ui-container">
-                    <span style="font-size:11px; color:#aaa;">ぶんすうを入れる:</span>
+                    <span style="font-size:11px; color:#aaa;">ぶんすう:</span>
                     <div class="fraction-box">
-                        <input type="text" id="fracNumerator" placeholder="上の数" oninput="onFractionFieldInput()">
+                        <input type="text" id="fracNumerator" placeholder="分子" oninput="onFractionFieldInput()">
                         <div class="fraction-line"></div>
-                        <input type="text" id="fracDenominator" placeholder="下の数" oninput="onFractionFieldInput()">
+                        <input type="text" id="fracDenominator" placeholder="分母" oninput="onFractionFieldInput()">
                     </div>
                     <span style="font-size:12px; color:#ffff00; font-weight:bold;" id="lbl-fraction-x-type">x²</span>
-                    <button class="btn-pad" style="padding:4px 8px; font-size:11px; background-color:#117a65;" onclick="applyFractionToFormula()">決定</button>
+                    <button class="btn-pad btn-pad-action" style="padding:4px 8px; font-size:11px;" onclick="applyFractionToFormula()">適用</button>
                 </div>
             </div>
+            
+            <!-- 改善版キーパッドのコンテナ -->
             <div class="kids-pad-grid" id="kidsKeyboardGrid"></div>
         </div>
     </div>
@@ -412,6 +444,13 @@
     const thicknessSelect = document.getElementById('thicknessSelect');
     const btnAdvancedToggle = document.getElementById('btnAdvancedToggle');
     const coordSubPalette = document.getElementById('coordSubPalette');
+
+    let lastFocusedInput = kidsFormulaInput;
+    [kidsFormulaInput, fracNumerator, fracDenominator].forEach(inputEl => {
+        if(inputEl) {
+            inputEl.addEventListener('focus', () => { lastFocusedInput = inputEl; });
+        }
+    });
 
     measureOutput.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('btn-flip-angle')) {
@@ -558,6 +597,7 @@
         cachedJsFormula = translateKidsToJs(val);
         parseAndSyncFractionDisplay(val);
     }
+    
     function onFractionFieldInput() {
         const num = fracNumerator.value;
         const den = fracDenominator.value;
@@ -572,6 +612,7 @@
         cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
         parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
+
     function parseAndSyncFractionDisplay(str) {
         const match = str.match(/\(([^)]+)\/([^)]+)\)/);
         
@@ -598,28 +639,110 @@
         syncViewXText.style.display = suffix ? 'inline' : 'none';
     }
 
+    /* カーソル位置への高精度文字挿入処理 */
+    function insertAtCursor(targetInput, strToInsert) {
+        if (!targetInput) targetInput = kidsFormulaInput;
+        const start = targetInput.selectionStart || targetInput.value.length;
+        const end = targetInput.selectionEnd || targetInput.value.length;
+        const oldVal = targetInput.value;
+        targetInput.value = oldVal.substring(0, start) + strToInsert + oldVal.substring(end);
+        targetInput.selectionStart = targetInput.selectionEnd = start + strToInsert.length;
+        targetInput.focus();
+    }
+
+    function backspaceAtCursor(targetInput) {
+        if (!targetInput) targetInput = kidsFormulaInput;
+        const start = targetInput.selectionStart || targetInput.value.length;
+        const end = targetInput.selectionEnd || targetInput.value.length;
+        const oldVal = targetInput.value;
+        if (start !== end) {
+            targetInput.value = oldVal.substring(0, start) + oldVal.substring(end);
+            targetInput.selectionStart = targetInput.selectionEnd = start;
+        } else if (start > 0) {
+            targetInput.value = oldVal.substring(0, start - 1) + oldVal.substring(start);
+            targetInput.selectionStart = targetInput.selectionEnd = start - 1;
+        }
+        targetInput.focus();
+    }
+
+    /* 改良版キーパッドの描画とイベント処理 */
     function renderKidsKeyboard() {
-        const container = document.getElementById('kidsKeyboardGrid'); container.innerHTML = '';
+        const container = document.getElementById('kidsKeyboardGrid'); 
+        container.innerHTML = '';
+        
+        // 5列構成の最適化キーレイアウト
         const keys = [
-            { k: 'x', label: 'x' }, { k: '+', label: '＋' }, { k: '-', label: '－' }, { k: '*', label: '×' }, { k: '/', label: '÷' },
-            { k: '1', label: '1' }, { k: '2', label: '2' }, { k: '3', label: '3' }, { k: '4', label: '4' }, { k: '5', label: '5' },
-            { k: '6', label: '6' }, { k: '7', label: '7' }, { k: '8', label: '8' }, { k: '9', label: '9' }, { k: '0', label: '0' },
-            { k: '.', label: '．' }, { k: '²', label: '²' }, { k: 'BACK', label: currentLang === 'ja'?'戻る':'Back', clear: true }, { k: 'CLEAR', label: currentLang === 'ja'?'消去':'Clear', clear: true }
+            { k: '7', label: '7' }, { k: '8', label: '8' }, { k: '9', label: '9' }, { k: 'x', label: 'x', cls: 'btn-pad-var' }, { k: 'x²', label: 'x²', cls: 'btn-pad-var' },
+            { k: '4', label: '4' }, { k: '5', label: '5' }, { k: '6', label: '6' }, { k: '+', label: '＋', cls: 'btn-pad-op' }, { k: '-', label: '－', cls: 'btn-pad-op' },
+            { k: '1', label: '1' }, { k: '2', label: '2' }, { k: '3', label: '3' }, { k: '*', label: '×', cls: 'btn-pad-op' }, { k: '/', label: '÷', cls: 'btn-pad-op' },
+            { k: '0', label: '0' }, { k: '.', label: '．' }, { k: '(', label: '(', cls: 'btn-pad-op' }, { k: ')', label: ')', cls: 'btn-pad-op' }, { k: 'BACK', label: '⌫', cls: 'btn-pad-back' },
+            { k: 'CLEAR', label: currentLang === 'ja'?'全消去':'Clear', cls: 'btn-pad-clear', span: 5 }
         ];
+
         keys.forEach(item => {
-            const btn = document.createElement('button'); btn.className = 'btn-pad';
-            if (item.clear) btn.classList.add('btn-pad-clear');
-            btn.innerHTML = (item.label === 'x') ? '<span class="math-x-font">x</span>' : item.label;
-            btn.onclick = () => {
-                if (item.k === 'CLEAR') { kidsFormulaInput.value = ''; fracNumerator.value = ''; fracDenominator.value = ''; }
-                else if (item.k === 'BACK') { kidsFormulaInput.value = kidsFormulaInput.value.substring(0, kidsFormulaInput.value.length - 1); }
-                else if (item.k === '²') { kidsFormulaInput.value += '*x'; }
-                else { kidsFormulaInput.value += item.k; }
-                cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
-                parseAndSyncFractionDisplay(kidsKeyboardGrid);
+            const btn = document.createElement('button'); 
+            btn.className = 'btn-pad ' + (item.cls || '');
+            if (item.span) btn.style.gridColumn = `span ${item.span}`;
+            
+            if (item.k === 'x' || item.k === 'x²') {
+                btn.innerHTML = `<span class="math-x-font">${item.label}</span>`;
+            } else {
+                btn.innerHTML = item.label;
+            }
+
+            btn.onclick = (e) => {
+                e.preventDefault();
+                let activeEl = (lastFocusedInput && (lastFocusedInput === fracNumerator || lastFocusedInput === fracDenominator || lastFocusedInput === kidsFormulaInput)) ? lastFocusedInput : kidsFormulaInput;
+
+                if (item.k === 'CLEAR') { 
+                    kidsFormulaInput.value = ''; 
+                    fracNumerator.value = ''; 
+                    fracDenominator.value = ''; 
+                    kidsFormulaInput.focus();
+                }
+                else if (item.k === 'BACK') { 
+                    backspaceAtCursor(activeEl);
+                }
+                else if (item.k === 'x²') {
+                    if (activeEl === fracNumerator || activeEl === fracDenominator) {
+                        applyXTypeToFormula('*x*x');
+                    } else {
+                        insertAtCursor(kidsFormulaInput, '*x*x');
+                    }
+                }
+                else if (item.k === 'x') {
+                    if (activeEl === fracNumerator || activeEl === fracDenominator) {
+                        applyXTypeToFormula('*x');
+                    } else {
+                        insertAtCursor(kidsFormulaInput, 'x');
+                    }
+                }
+                else { 
+                    insertAtCursor(activeEl, item.k); 
+                }
+
+                if (activeEl === fracNumerator || activeEl === fracDenominator) {
+                    onFractionFieldInput();
+                } else {
+                    onNativeFormulaInput();
+                }
             };
             container.appendChild(btn);
         });
+    }
+
+    function applyXTypeToFormula(xStr) {
+        let currentExpr = kidsFormulaInput.value;
+        let num = fracNumerator.value || '?';
+        let den = fracDenominator.value || '?';
+        
+        let spaceX = xStr ? ` * ${xStr.replace(/\*/g, '')}` : '';
+        if (xStr === '*x*x') spaceX = ' * x * x';
+        if (xStr === '*x') spaceX = ' * x';
+
+        kidsFormulaInput.value = `(${num}/${den})${spaceX}`;
+        cachedJsFormula = translateKidsToJs(kidsFormulaInput.value);
+        parseAndSyncFractionDisplay(kidsFormulaInput.value);
     }
 
     function applyFractionToFormula() {
@@ -695,6 +818,7 @@
         };
         document.getElementById('btn-grid-cycle').innerHTML = labelsGrid[currentLang][gridType];
         coordSubPalette.style.display = (gridType === 4) ? 'block' : 'none';
+        if (gridType === 4) renderKidsKeyboard();
     }
 
     function cycleToolbarSize() {}
@@ -1425,108 +1549,140 @@
                     if (startA > Math.PI * 2) startA -= Math.PI * 2;
                     if (endA > Math.PI * 2) endA -= Math.PI * 2;
                     
-                    if (startA > endA) {
-                        d.startAngle = startA;
-                        d.endAngle = endA + Math.PI * 2;
-                    } else {
-                        d.startAngle = startA;
-                        d.endAngle = endA;
-                    }
+                    d.startAngle = startA;
+                    d.endAngle = endA;
+                }
+            }
+            else if (d.type === 'arc') {
+                let pC = toScreen(d.mX1, d.mY1);
+                let rS = Math.hypot(toScreen(d.mX2, d.mY2).x - pC.x, toScreen(d.mX2, d.mY2).y - pC.y);
+                let distToArcEdge = Math.abs(Math.hypot(sx - pC.x, sy - pC.y) - rS);
+                
+                if (distToArcEdge < 25) {
+                    let hitAngle = Math.atan2(sy - pC.y, sx - pC.x);
+                    let normStart = d.startAngle || 0;
+                    let normEnd = d.endAngle || Math.PI;
+                    
+                    d.endAngle = hitAngle - 0.2;
+                }
+            }
+            else if (['segment', 'line', 'ray', 'vector'].includes(d.type)) {
+                let p1 = toScreen(d.mX1, d.mY1);
+                let p2 = toScreen(d.mX2, d.mY2);
+                if (distToSegment({x: sx, y: sy}, p1, p2) < 20) {
+                    d.isDeleted = true;
                 }
             }
         });
-        
-        drawings = drawings.filter(d => (d.type !== 'freehand' || d.pts.length > 1) && (d.type !== 'arc' || d.endAngle > d.startAngle));
+
+        drawings = drawings.filter(d => !d.isDeleted && (d.type !== 'freehand' || d.pts.length > 1));
         
         plots = plots.filter(p => {
-            const shouldDelete = (Math.hypot(sx - toScreen(p.mx, p.my).x, sy - toScreen(p.mx, p.my).y) < 20);
-            if (shouldDelete) {
-                activeMeasures = activeMeasures.filter(m => m.p1 !== p.id && m.p2 !== p.id && m.p3 !== p.id);
-            }
-            return !shouldDelete;
+            let pScreen = toScreen(p.mx, p.my);
+            return Math.hypot(sx - pScreen.x, sy - pScreen.y) > 25;
         });
+    }
+
+    function distToSegment(p, v, w) {
+        let l2 = (v.x - w.x)*(v.x - w.x) + (v.y - w.y)*(v.y - w.y);
+        if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
     function processLassoSelection() {
         if (lassoPoints.length < 3) return;
         selectedPlotIds = []; selectedDrawingIds = [];
-        plots.forEach(p => { if (isPointInPolygon(toScreen(p.mx, p.my), lassoPoints)) selectedPlotIds.push(p.id); });
+        plots.forEach(p => {
+            let s = toScreen(p.mx, p.my);
+            if (isPointInPolygon(s, lassoPoints)) selectedPlotIds.push(p.id);
+        });
         drawings.forEach(d => {
-            if (['segment','line','ray','vector'].includes(d.type)) {
-                if (isPointInPolygon(toScreen(d.mX1, d.mY1), lassoPoints) && isPointInPolygon(toScreen(d.mX2, d.mY2), lassoPoints)) selectedDrawingIds.push(d.id);
+            let s1 = toScreen(d.mX1, d.mY1);
+            let s2 = toScreen(d.mX2, d.mY2);
+            if (isPointInPolygon(s1, lassoPoints) && isPointInPolygon(s2, lassoPoints)) {
+                selectedDrawingIds.push(d.id);
             }
         });
     }
 
-    function isPointInPolygon(pt, poly) {
-        let inside = false;
-        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-            let xi = poly[i].x, yi = poly[i].y; let xj = poly[j].x, yj = poly[j].y;
-            let intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
-            if (intersect) inside = !inside;
+    function isPointInPolygon(p, polygon) {
+        let isInside = false;
+        let minX = polygon[0].x, maxX = polygon[0].x;
+        let minY = polygon[0].y, maxY = polygon[0].y;
+        for (let n = 1; n < polygon.length; n++) {
+            let q = polygon[n];
+            minX = Math.min(q.x, minX); maxX = Math.max(q.x, maxX);
+            minY = Math.min(q.y, minY); maxY = Math.max(q.y, maxY);
         }
-        return inside;
+        if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) return false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            if ((polygon[i].y > p.y) !== (polygon[j].y > p.y) &&
+                p.x < (polygon[j].x - polygon[i].x) * (p.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x) {
+                isInside = !isInside;
+            }
+        }
+        return isInside;
     }
-
-    function distToSegment(p, v, w) {
-        let l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2); if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
-        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2; t = Math.max(0, Math.min(1, t));
-        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
-    }
-
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
-
-    canvas.addEventListener('touchstart', e => { if(e.touches.length === 1) startDrawing(e.touches[0]); }, {passive: true});
-    canvas.addEventListener('touchmove', e => { if(e.touches.length === 1) draw(e.touches[0]); }, {passive: true});
-    canvas.addEventListener('touchend', e => { stopDrawing(e.changedTouches[0]); });
-
-    window.addEventListener('wheel', e => {
-        e.preventDefault();
-        const mBefore = toMath(e.clientX, e.clientY);
-        if (e.deltaY < 0) scale *= 1.08; else scale /= 1.08;
-        scale = Math.max(0.15, Math.min(20, scale));
-        const sAfter = toScreen(mBefore.x, mBefore.y);
-        offsetX += (e.clientX - sAfter.x); offsetY += (e.clientY - sAfter.y);
-    }, { passive: false });
 
     function saveData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ drawings, plots, activeMeasures, groups, labelIndex }));
-        const dlAnchor = document.createElement('a'); dlAnchor.setAttribute("href", dataStr); dlAnchor.setAttribute("download", "blackboard_geometry.json");
-        document.body.appendChild(dlAnchor); dlAnchor.click(); dlAnchor.remove();
+        const data = { drawings, plots, activeMeasures, groups, labelIndex, gridType, coordStepUnit, showCoordLabels, cachedJsFormula, kidsFormulaInputValue: kidsFormulaInput.value };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `blackboard_math_${new Date().toISOString().slice(0, 10)}.json`; a.click();
     }
     function triggerJsonUpload() { document.getElementById('jsonInput').click(); }
-    function loadData(el) {
+    function loadData(input) {
+        const file = input.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const parsed = JSON.parse(e.target.result); saveHistory();
-                drawings = parsed.drawings || []; plots = parsed.plots || []; activeMeasures = parsed.activeMeasures || []; groups = parsed.groups || []; labelIndex = parsed.labelIndex || 0;
-            } catch(err) { alert("JSONファイルの読み込みに失敗しました。"); }
+                const data = JSON.parse(e.target.result);
+                saveHistory();
+                drawings = data.drawings || []; plots = data.plots || []; activeMeasures = data.activeMeasures || [];
+                groups = data.groups || []; labelIndex = data.labelIndex || 0; gridType = data.gridType || 1;
+                coordStepUnit = data.coordStepUnit || 1.0; showCoordLabels = data.showCoordLabels !== undefined ? data.showCoordLabels : true;
+                if (data.kidsFormulaInputValue) { kidsFormulaInput.value = data.kidsFormulaInputValue; }
+                if (data.cachedJsFormula) { cachedJsFormula = data.cachedJsFormula; }
+                cycleGridTextOnly(); parseAndSyncFractionDisplay(kidsFormulaInput.value);
+            } catch (err) { alert('ファイルの読み込みに失敗しました'); }
         };
-        if(el.files[0]) reader.readAsText(el.files[0]);
+        reader.readAsText(file);
     }
 
-    const tbHandle = document.getElementById('myToolbarHandle');
-    const myTb = document.getElementById('myToolbar');
-    let isDraggingToolbar = false; let tbOffsetX = 0; let tbOffsetY = 0;
-    
-    tbHandle.addEventListener('mousedown', e => { isDraggingToolbar = true; tbOffsetX = e.clientX - myTb.offsetLeft; tbOffsetY = e.clientY - myTb.offsetTop; e.preventDefault(); });
-    window.addEventListener('mousemove', e => { if (!isDraggingToolbar) return; myTb.style.left = (e.clientX - tbOffsetX) + 'px'; myTb.style.top = (e.clientY - tbOffsetY) + 'px'; });
-    window.addEventListener('mouseup', () => isDraggingToolbar = false);
-    
-    tbHandle.addEventListener('touchstart', e => { isDraggingToolbar = true; tbOffsetX = e.touches[0].clientX - myTb.offsetLeft; tbOffsetY = e.touches[0].clientY - myTb.offsetTop; }, {passive:true});
-    window.addEventListener('touchmove', e => { if (!isDraggingToolbar) return; myTb.style.left = (e.touches[0].clientX - tbOffsetX) + 'px'; myTb.style.top = (e.touches[0].clientY - tbOffsetY) + 'px'; }, {passive:true});
-    window.addEventListener('touchend', () => isDraggingToolbar = false);
+    // イベントリスナー設定
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('pointercancel', stopDrawing);
 
+    // ツールバーのドラッグ移動機能
+    const toolbar = document.getElementById('myToolbar');
+    const handle = document.getElementById('myToolbarHandle');
+    let isTbDragging = false, tbTbStartX = 0, tbTbStartY = 0, tbElemStartX = 0, tbElemStartY = 0;
+
+    handle.addEventListener('pointerdown', e => {
+        isTbDragging = true;
+        tbTbStartX = e.clientX; tbTbStartY = e.clientY;
+        const rect = toolbar.getBoundingClientRect();
+        tbElemStartX = rect.left; tbElemStartY = rect.top;
+        handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove', e => {
+        if (!isTbDragging) return;
+        let nx = tbElemStartX + (e.clientX - tbTbStartX);
+        let ny = tbElemStartY + (e.clientY - tbTbStartY);
+        toolbar.style.left = `${Math.max(0, Math.min(window.innerWidth - 100, nx))}px`;
+        toolbar.style.top = `${Math.max(0, Math.min(window.innerHeight - 100, ny))}px`;
+    });
+    handle.addEventListener('pointerup', e => { isTbDragging = false; handle.releasePointerCapture(e.pointerId); });
+
+    // 初期化実行
     updateDropdowns();
     renderKidsKeyboard();
-    parseAndSyncFractionDisplay("0.2*x*x");
     updateInfoMeterInstructions();
     tick();
 </script>
-
 </body>
 </html>
